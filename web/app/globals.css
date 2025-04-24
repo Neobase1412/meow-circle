@@ -2,23 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary: #ff9494;
-  --primary-foreground: #ffffff;
-  --secondary: #ffe4e1;
-  --secondary-foreground: #ff9494;
-  --background: #fff9f5;
-  --foreground: #ff9494;
-  --muted: #ffe4e1;
-  --muted-foreground: rgba(255, 148, 148, 0.7);
-  --accent: #ffe4e1;
-  --accent-foreground: #ff9494;
-  --border: #ffe4e1;
-  --input: #ffe4e1;
-  --ring: #ff9494;
-}
-
 @layer base {
+  :root {
+    --primary: 355 100% 79%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 355 100% 94%;
+    --secondary-foreground: 355 100% 79%;
+    --background: 20 100% 98%;
+    --foreground: 355 100% 79%;
+    --muted: 355 100% 94%;
+    --muted-foreground: 355 100% 79%;
+    --accent: 355 100% 94%;
+    --accent-foreground: 355 100% 79%;
+    --border: 355 100% 94%;
+    --input: 355 100% 94%;
+    --ring: 355 100% 79%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --primary: 355 100% 79%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 355 30% 20%;
+    --secondary-foreground: 355 100% 79%;
+    --background: 355 30% 10%;
+    --foreground: 355 100% 94%;
+    --muted: 355 30% 20%;
+    --muted-foreground: 355 60% 85%;
+    --accent: 355 30% 20%;
+    --accent-foreground: 355 100% 79%;
+    --border: 355 30% 20%;
+    --input: 355 30% 20%;
+    --ring: 355 100% 79%;
+  }
+
   * {
     @apply border-border;
   }

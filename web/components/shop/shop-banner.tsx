@@ -18,7 +18,7 @@ export default function ShopBanner({ locale }: ShopBannerProps) {
       </div>
       <div className="relative z-10 p-8 md:p-12 lg:p-16 max-w-2xl">
         <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">喵宇宙精選商城</h1>
-        <p className="text-white/90 text-lg mb-6">為您的貓咪提供最優質的食品、用品和玩具，讓您的毛孩享受最好的呵護。</p>
+        <p className="text-white/90 text-lg mb-6">為您的貓提供最優質的食品、用品和玩具，讓您的毛孩享受最好的呵護。</p>
         <div className="flex flex-wrap gap-4">
           <Button size="lg" asChild>
             <Link href={`/${locale}/shop/new`}>探索新品</Link>
