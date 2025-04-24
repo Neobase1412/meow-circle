@@ -4,7 +4,8 @@ import { type Locale, dictionary } from "@/i18n-config"
 import { Card, CardContent } from "@/components/ui/card"
 import RegisterForm from "@/components/auth/register-form"
 
-export default function RegisterPage({ params: { locale } }: { params: { locale: Locale } }) {
+export default async function RegisterPage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params
   const t = dictionary[locale]
 
   return (

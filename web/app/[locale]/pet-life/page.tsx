@@ -8,7 +8,8 @@ import ServiceCard from "@/components/pet-life/service-card"
 import PetLifeBanner from "@/components/pet-life/pet-life-banner"
 import HealthTipCard from "@/components/pet-life/health-tip-card"
 
-export default function PetLifePage({ params: { locale } }: { params: { locale: Locale } }) {
+export default async function PetLifePage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params
   const t = dictionary[locale]
 
   // Get recommended services

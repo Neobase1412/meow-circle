@@ -7,6 +7,7 @@ export const i18n = {
 
 export const dictionary = {
   en: {
+    // Navigation
     home: "Home",
     community: "Community",
     discussion: "Discussion",
@@ -18,6 +19,8 @@ export const dictionary = {
     settings: "Settings",
     notifications: "Notifications",
     search: "Search",
+
+    // Actions
     "create-post": "Create Post",
     "view-more": "View More",
     "learn-more": "Learn More",
@@ -33,14 +36,67 @@ export const dictionary = {
     delete: "Delete",
     cancel: "Cancel",
     submit: "Submit",
+
+    // Welcome messages
     welcome: "Welcome to Meow Circle",
+    "welcome-back": "Welcome Back",
     "welcome-message": "Connect with cat lovers, share experiences, and discover pet services.",
+    "join-meow-universe": "Join Meow Universe",
+    "no-account": "Don't have an account?",
+    "has-account": "Already have an account?",
+    "sign-up": "Sign Up",
+    "sign-in": "Sign In",
+
+    // Auth related
+    email: "Email",
+    password: "Password",
+    username: "Username",
+    "confirm-password": "Confirm Password",
+    "forgot-password": "Forgot Password?",
+    "remember-me": "Remember Me",
+    "agree-terms": "I agree to the Terms of Service and Privacy Policy",
+
+    // Footer
+    "about-us": "About Us",
+    "about-meow-universe": "About Meow Universe",
+    "team-intro": "Team Introduction",
+    "brand-story": "Brand Story",
+    "contact-us": "Contact Us",
+    "terms-of-service": "Terms of Service",
+    "privacy-policy": "Privacy Policy",
+    "pet-services": "Pet Services",
+    "health-management": "Health Management",
+    "grooming-services": "Grooming Services",
+    "pet-boarding": "Pet Boarding",
+    "community-exchange": "Community Exchange",
+    "featured-shop": "Featured Shop",
+    "beginner-guide": "Beginner Guide",
+    "platform-tutorial": "Platform Tutorial",
+    "nutrition-knowledge": "Nutrition Knowledge",
+    "care-guide": "Care Guide",
+    faq: "FAQ",
+    "follow-us": "Follow Us",
+    "newsletter-subscription": "Newsletter Subscription",
+    copyright: "Copyright",
+    "all-rights-reserved": "© 2023 Meow Circle. All rights reserved.",
+    "trademark-notice": "All trademarks are property of their respective owners.",
+    "image-license": "Images used under license.",
+
+    // Content sections
+    "latest-updates": "Latest Updates",
+    "popular-posts": "Popular Posts",
+    "hot-topics": "Hot Topics",
+    "recommended-products": "Recommended Products",
+    "official-announcements": "Official Announcements",
+
+    // Footer copyright
     "footer-copyright": "© 2023 Meow Circle. All rights reserved.",
     "footer-terms": "Terms of Service",
     "footer-privacy": "Privacy Policy",
     "footer-contact": "Contact Us",
   },
   "zh-TW": {
+    // Navigation
     home: "首頁",
     community: "社群",
     discussion: "討論區",
@@ -52,6 +108,8 @@ export const dictionary = {
     settings: "設定",
     notifications: "通知",
     search: "搜尋",
+
+    // Actions
     "create-post": "發布貼文",
     "view-more": "查看更多",
     "learn-more": "了解更多",
@@ -67,8 +125,60 @@ export const dictionary = {
     delete: "刪除",
     cancel: "取消",
     submit: "提交",
+
+    // Welcome messages
     welcome: "歡迎來到喵圈",
+    "welcome-back": "歡迎回來",
     "welcome-message": "與貓咪愛好者連結，分享經驗，探索寵物服務。",
+    "join-meow-universe": "加入喵宇宙",
+    "no-account": "還沒有帳號？",
+    "has-account": "已經有帳號了？",
+    "sign-up": "註冊",
+    "sign-in": "登入",
+
+    // Auth related
+    email: "電子郵件",
+    password: "密碼",
+    username: "使用者名稱",
+    "confirm-password": "確認密碼",
+    "forgot-password": "忘記密碼？",
+    "remember-me": "記住我",
+    "agree-terms": "我同意服務條款和隱私政策",
+
+    // Footer
+    "about-us": "關於我們",
+    "about-meow-universe": "關於喵宇宙",
+    "team-intro": "團隊介紹",
+    "brand-story": "品牌故事",
+    "contact-us": "聯絡我們",
+    "terms-of-service": "服務條款",
+    "privacy-policy": "隱私政策",
+    "pet-services": "寵物服務",
+    "health-management": "健康管理",
+    "grooming-services": "美容服務",
+    "pet-boarding": "寵物住宿",
+    "community-exchange": "社群交流",
+    "featured-shop": "精選商城",
+    "beginner-guide": "新手指南",
+    "platform-tutorial": "平台教學",
+    "nutrition-knowledge": "營養知識",
+    "care-guide": "照護指南",
+    faq: "常見問題",
+    "follow-us": "關注我們",
+    "newsletter-subscription": "訂閱電子報",
+    copyright: "版權聲明",
+    "all-rights-reserved": "© 2023 喵圈。保留所有權利。",
+    "trademark-notice": "所有商標均為其各自所有者的財產。",
+    "image-license": "圖片使用已獲授權。",
+
+    // Content sections
+    "latest-updates": "最新更新",
+    "popular-posts": "熱門貼文",
+    "hot-topics": "熱門話題",
+    "recommended-products": "推薦商品",
+    "official-announcements": "官方公告",
+
+    // Footer copyright
     "footer-copyright": "© 2023 喵圈. 保留所有權利。",
     "footer-terms": "服務條款",
     "footer-privacy": "隱私政策",

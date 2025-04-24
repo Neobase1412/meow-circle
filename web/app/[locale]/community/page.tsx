@@ -9,7 +9,8 @@ import PostCard from "@/components/post-card"
 import TopicCard from "@/components/topic-card"
 import CreatePostCard from "@/components/create-post-card"
 
-export default function CommunityPage({ params: { locale } }: { params: { locale: Locale } }) {
+export default async function CommunityPage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params
   const t = dictionary[locale]
 
   // Get the latest posts

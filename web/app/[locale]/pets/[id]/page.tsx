@@ -20,7 +20,8 @@ interface PetProfilePageProps {
   }
 }
 
-export default function PetProfilePage({ params: { locale, id } }: PetProfilePageProps) {
+export default async function PetProfilePage({ params }: PetProfilePageProps) {
+  const { locale, id } = await params
   const t = dictionary[locale]
 
   // Find the pet

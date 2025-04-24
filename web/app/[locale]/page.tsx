@@ -14,7 +14,8 @@ import RecentActivityCard from "@/components/recent-activity-card"
 import FeaturedProductCard from "@/components/featured-product-card"
 import OfficialAnnouncementCard from "@/components/official-announcement-card"
 
-export default function Home({ params: { locale } }: { params: { locale: Locale } }) {
+export default async function Home({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params
   const t = dictionary[locale]
 
   // Get the latest 5 posts

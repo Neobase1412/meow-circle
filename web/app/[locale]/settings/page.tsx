@@ -5,7 +5,8 @@ import AccountSettingsForm from "@/components/settings/account-settings-form"
 import NotificationSettingsForm from "@/components/settings/notification-settings-form"
 import PrivacySettingsForm from "@/components/settings/privacy-settings-form"
 
-export default function SettingsPage({ params: { locale } }: { params: { locale: Locale } }) {
+export default async function SettingsPage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params
   const t = dictionary[locale]
 
   return (

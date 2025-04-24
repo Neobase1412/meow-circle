@@ -3,7 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import NotificationItem from "@/components/notifications/notification-item"
 
-export default function NotificationsPage({ params: { locale } }: { params: { locale: Locale } }) {
+export default async function NotificationsPage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params
   const t = dictionary[locale]
 
   // Mock notifications

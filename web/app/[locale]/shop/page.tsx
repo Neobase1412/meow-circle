@@ -9,7 +9,8 @@ import ShopBanner from "@/components/shop/shop-banner"
 import CategoryCard from "@/components/shop/category-card"
 import BrandCard from "@/components/shop/brand-card"
 
-export default function ShopPage({ params: { locale } }: { params: { locale: Locale } }) {
+export default async function ShopPage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params
   const t = dictionary[locale]
 
   // Get featured products

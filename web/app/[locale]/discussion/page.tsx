@@ -9,7 +9,8 @@ import { topics } from "@/data/posts"
 import TopicCard from "@/components/topic-card"
 import DiscussionCard from "@/components/discussion/discussion-card"
 
-export default function DiscussionPage({ params: { locale } }: { params: { locale: Locale } }) {
+export default async function DiscussionPage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params
   const t = dictionary[locale]
 
   // Mock discussions

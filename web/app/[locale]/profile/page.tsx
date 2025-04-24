@@ -12,7 +12,8 @@ import PostCard from "@/components/post-card"
 import PetProfileCard from "@/components/profile/pet-profile-card"
 import AchievementCard from "@/components/profile/achievement-card"
 
-export default function ProfilePage({ params: { locale } }: { params: { locale: Locale } }) {
+export default async function ProfilePage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params
   const t = dictionary[locale]
 
   // Get user's pets
