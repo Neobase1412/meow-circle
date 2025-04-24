@@ -1,0 +1,500 @@
+import type { Product, ProductCategory, Brand, ProductReview, CartItem, Order, OrderItem } from "@/types/product"
+
+export const productCategories: ProductCategory[] = [
+  {
+    id: "1",
+    name: "貓咪飼料",
+    description: "各種優質貓咪飼料，滿足不同年齡和需求的貓咪",
+    iconUrl: "/images/categories/category1-icon.png",
+    isActive: true,
+    sortOrder: 1,
+    createdAt: new Date("2023-01-01"),
+    updatedAt: new Date("2023-01-01"),
+  },
+  {
+    id: "2",
+    name: "貓砂用品",
+    description: "各種貓砂和貓砂盆，保持環境清潔",
+    iconUrl: "/images/categories/category2-icon.png",
+    isActive: true,
+    sortOrder: 2,
+    createdAt: new Date("2023-01-01"),
+    updatedAt: new Date("2023-01-01"),
+  },
+  {
+    id: "3",
+    name: "貓咪玩具",
+    description: "豐富多樣的貓咪玩具，滿足貓咪的娛樂需求",
+    iconUrl: "/images/categories/category3-icon.png",
+    isActive: true,
+    sortOrder: 3,
+    createdAt: new Date("2023-01-01"),
+    updatedAt: new Date("2023-01-01"),
+  },
+  {
+    id: "4",
+    name: "貓咪保健",
+    description: "各種貓咪保健品，維持貓咪健康",
+    iconUrl: "/images/categories/category4-icon.png",
+    isActive: true,
+    sortOrder: 4,
+    createdAt: new Date("2023-01-01"),
+    updatedAt: new Date("2023-01-01"),
+  },
+  {
+    id: "5",
+    name: "日常用品",
+    description: "貓咪日常生活必需品",
+    iconUrl: "/images/categories/category5-icon.png",
+    isActive: true,
+    sortOrder: 5,
+    createdAt: new Date("2023-01-01"),
+    updatedAt: new Date("2023-01-01"),
+  },
+  {
+    id: "6",
+    name: "美容清潔",
+    description: "貓咪美容和清潔用品",
+    iconUrl: "/images/categories/category6-icon.png",
+    isActive: true,
+    sortOrder: 6,
+    createdAt: new Date("2023-01-01"),
+    updatedAt: new Date("2023-01-01"),
+  },
+  {
+    id: "7",
+    name: "智慧家電",
+    description: "智能化的寵物家電產品",
+    iconUrl: "/images/categories/category7-icon.png",
+    isActive: true,
+    sortOrder: 7,
+    createdAt: new Date("2023-01-01"),
+    updatedAt: new Date("2023-01-01"),
+  },
+]
+
+export const brands: Brand[] = [
+  {
+    id: "1",
+    name: "喵喵樂",
+    description: "專業的貓咪食品品牌，提供高品質的貓咪飼料和零食",
+    logoUrl: "/images/brands/brand1-logo.png",
+    websiteUrl: "https://www.meowjoy.com",
+    isVerified: true,
+    isActive: true,
+    createdAt: new Date("2023-01-01"),
+    updatedAt: new Date("2023-01-01"),
+  },
+  {
+    id: "2",
+    name: "貓砂王",
+    description: "專業的貓砂品牌，提供多種類型的優質貓砂",
+    logoUrl: "/images/brands/brand2-logo.png",
+    websiteUrl: "https://www.catsandking.com",
+    isVerified: true,
+    isActive: true,
+    createdAt: new Date("2023-01-01"),
+    updatedAt: new Date("2023-01-01"),
+  },
+  {
+    id: "3",
+    name: "喵星玩具",
+    description: "創意的貓咪玩具品牌，設計各種有趣的貓咪玩具",
+    logoUrl: "/images/brands/brand3-logo.png",
+    websiteUrl: "https://www.meowplanet.com",
+    isVerified: true,
+    isActive: true,
+    createdAt: new Date("2023-01-01"),
+    updatedAt: new Date("2023-01-01"),
+  },
+  {
+    id: "4",
+    name: "貓咪健康",
+    description: "專注於貓咪保健品的品牌，提供各種維持貓咪健康的產品",
+    logoUrl: "/images/brands/brand4-logo.png",
+    websiteUrl: "https://www.cathealth.com",
+    isVerified: true,
+    isActive: true,
+    createdAt: new Date("2023-01-01"),
+    updatedAt: new Date("2023-01-01"),
+  },
+  {
+    id: "5",
+    name: "智慧貓屋",
+    description: "專業的智能寵物家電品牌，提供各種智能化的寵物產品",
+    logoUrl: "/images/brands/brand5-logo.png",
+    websiteUrl: "https://www.smartcathouse.com",
+    isVerified: true,
+    isActive: true,
+    createdAt: new Date("2023-01-01"),
+    updatedAt: new Date("2023-01-01"),
+  },
+]
+
+export const products: Product[] = [
+  {
+    id: "1",
+    name: "喵喵樂高蛋白無穀貓飼料",
+    description: "高蛋白無穀配方，適合各年齡段貓咪，含有豐富的營養成分，促進貓咪健康成長。",
+    price: 1200,
+    originalPrice: 1500,
+    discount: 20,
+    stock: 100,
+    imageUrls: [
+      "/images/products/product1-1.jpg",
+      "/images/products/product1-2.jpg",
+      "/images/products/product1-3.jpg",
+    ],
+    thumbnailUrl: "/images/products/product1-thumbnail.jpg",
+    categoryId: "1", // 貓咪飼料
+    brandId: "1", // 喵喵樂
+    tags: ["無穀", "高蛋白", "全年齡"],
+    rating: 4.8,
+    reviewCount: 120,
+    isActive: true,
+    isNew: false,
+    isPopular: true,
+    isOnSale: true,
+    createdAt: new Date("2023-01-15"),
+    updatedAt: new Date("2023-06-01"),
+  },
+  {
+    id: "2",
+    name: "貓砂王凝結貓砂",
+    description: "超強凝結力，快速吸收異味，低粉塵，環保可沖馬桶，經濟實惠。",
+    price: 450,
+    originalPrice: 500,
+    discount: 10,
+    stock: 200,
+    imageUrls: ["/images/products/product2-1.jpg", "/images/products/product2-2.jpg"],
+    thumbnailUrl: "/images/products/product2-thumbnail.jpg",
+    categoryId: "2", // 貓砂用品
+    brandId: "2", // 貓砂王
+    tags: ["凝結", "低粉塵", "可沖馬桶"],
+    rating: 4.7,
+    reviewCount: 85,
+    isActive: true,
+    isNew: false,
+    isPopular: true,
+    isOnSale: true,
+    createdAt: new Date("2023-02-10"),
+    updatedAt: new Date("2023-06-05"),
+  },
+  {
+    id: "3",
+    name: "喵星玩具互動逗貓棒",
+    description: "設計精巧的互動逗貓棒，可更換多種玩具頭，滿足貓咪的狩獵本能。",
+    price: 350,
+    stock: 150,
+    imageUrls: [
+      "/images/products/product3-1.jpg",
+      "/images/products/product3-2.jpg",
+      "/images/products/product3-3.jpg",
+    ],
+    thumbnailUrl: "/images/products/product3-thumbnail.jpg",
+    categoryId: "3", // 貓咪玩具
+    brandId: "3", // 喵星玩具
+    tags: ["互動", "逗貓棒", "可更換"],
+    rating: 4.9,
+    reviewCount: 65,
+    isActive: true,
+    isNew: true,
+    isPopular: true,
+    isOnSale: false,
+    createdAt: new Date("2023-05-20"),
+    updatedAt: new Date("2023-06-10"),
+  },
+  {
+    id: "4",
+    name: "貓咪健康毛球護理膏",
+    description: "幫助貓咪排出毛球，預防毛球堵塞，添加多種維生素，促進腸道健康。",
+    price: 580,
+    stock: 80,
+    imageUrls: ["/images/products/product4-1.jpg", "/images/products/product4-2.jpg"],
+    thumbnailUrl: "/images/products/product4-thumbnail.jpg",
+    categoryId: "4", // 貓咪保健
+    brandId: "4", // 貓咪健康
+    tags: ["毛球護理", "腸道健康", "維生素"],
+    rating: 4.6,
+    reviewCount: 42,
+    isActive: true,
+    isNew: false,
+    isPopular: false,
+    isOnSale: false,
+    createdAt: new Date("2023-03-15"),
+    updatedAt: new Date("2023-05-20"),
+  },
+  {
+    id: "5",
+    name: "智慧貓屋自動餵食器",
+    description: "智能定時定量餵食，遠程控制，支持語音提醒，確保貓咪按時進食。",
+    price: 2800,
+    originalPrice: 3200,
+    discount: 12.5,
+    stock: 30,
+    imageUrls: [
+      "/images/products/product5-1.jpg",
+      "/images/products/product5-2.jpg",
+      "/images/products/product5-3.jpg",
+    ],
+    thumbnailUrl: "/images/products/product5-thumbnail.jpg",
+    categoryId: "7", // 智慧家電
+    brandId: "5", // 智慧貓屋
+    tags: ["自動餵食", "遠程控制", "定時定量"],
+    rating: 4.5,
+    reviewCount: 28,
+    isActive: true,
+    isNew: true,
+    isPopular: false,
+    isOnSale: true,
+    createdAt: new Date("2023-04-25"),
+    updatedAt: new Date("2023-06-15"),
+  },
+  {
+    id: "6",
+    name: "貓咪健康關節保健粉",
+    description: "含有葡萄糖胺和軟骨素，幫助維護貓咪關節健康，特別適合老年貓咪。",
+    price: 780,
+    stock: 60,
+    imageUrls: ["/images/products/product6-1.jpg", "/images/products/product6-2.jpg"],
+    thumbnailUrl: "/images/products/product6-thumbnail.jpg",
+    categoryId: "4", // 貓咪保健
+    brandId: "4", // 貓咪健康
+    tags: ["關節保健", "老年貓", "葡萄糖胺"],
+    rating: 4.7,
+    reviewCount: 35,
+    isActive: true,
+    isNew: false,
+    isPopular: false,
+    isOnSale: false,
+    createdAt: new Date("2023-02-28"),
+    updatedAt: new Date("2023-05-15"),
+  },
+  {
+    id: "7",
+    name: "喵星玩具貓抓板",
+    description: "環保材質貓抓板，耐磨耐用，可幫助貓咪磨爪子，保護家具。",
+    price: 480,
+    originalPrice: 550,
+    discount: 12.7,
+    stock: 100,
+    imageUrls: ["/images/products/product7-1.jpg", "/images/products/product7-2.jpg"],
+    thumbnailUrl: "/images/products/product7-thumbnail.jpg",
+    categoryId: "3", // 貓咪玩具
+    brandId: "3", // 喵星玩具
+    tags: ["貓抓板", "環保", "磨爪"],
+    rating: 4.8,
+    reviewCount: 75,
+    isActive: true,
+    isNew: false,
+    isPopular: true,
+    isOnSale: true,
+    createdAt: new Date("2023-03-10"),
+    updatedAt: new Date("2023-06-08"),
+  },
+  {
+    id: "8",
+    name: "智慧貓屋自動貓砂盆",
+    description: "智能感應自動清理，除臭系統，APP監控，讓貓咪如廁更衛生方便。",
+    price: 4500,
+    originalPrice: 5000,
+    discount: 10,
+    stock: 20,
+    imageUrls: [
+      "/images/products/product8-1.jpg",
+      "/images/products/product8-2.jpg",
+      "/images/products/product8-3.jpg",
+    ],
+    thumbnailUrl: "/images/products/product8-thumbnail.jpg",
+    categoryId: "7", // 智慧家電
+    brandId: "5", // 智慧貓屋
+    tags: ["自動貓砂盆", "智能感應", "APP監控"],
+    rating: 4.4,
+    reviewCount: 22,
+    isActive: true,
+    isNew: true,
+    isPopular: false,
+    isOnSale: true,
+    createdAt: new Date("2023-05-05"),
+    updatedAt: new Date("2023-06-12"),
+  },
+]
+
+export const productReviews: ProductReview[] = [
+  {
+    id: "1",
+    productId: "1", // 喵喵樂高蛋白無穀貓飼料
+    userId: "2", // meowlover
+    rating: 5,
+    comment: "我家兩隻貓都很喜歡這款飼料，吃了一個月後毛色明顯變好了，也很有活力。",
+    mediaUrls: ["/images/reviews/product-review1-1.jpg"],
+    isVerifiedPurchase: true,
+    helpfulCount: 25,
+    reportCount: 0,
+    createdAt: new Date("2023-05-20"),
+    updatedAt: new Date("2023-05-20"),
+  },
+  {
+    id: "2",
+    productId: "1", // 喵喵樂高蛋白無穀貓飼料
+    userId: "3", // catmom
+    rating: 4,
+    comment: "品質不錯，貓咪很愛吃，但價格稍微高了一點。",
+    mediaUrls: [],
+    isVerifiedPurchase: true,
+    helpfulCount: 12,
+    reportCount: 0,
+    createdAt: new Date("2023-04-15"),
+    updatedAt: new Date("2023-04-15"),
+  },
+  {
+    id: "3",
+    productId: "2", // 貓砂王凝結貓砂
+    userId: "2", // meowlover
+    rating: 5,
+    comment: "凝結效果很好，除臭效果也不錯，最重要的是幾乎沒有粉塵，不會弄得到處都是。",
+    mediaUrls: ["/images/reviews/product-review3-1.jpg", "/images/reviews/product-review3-2.jpg"],
+    isVerifiedPurchase: true,
+    helpfulCount: 18,
+    reportCount: 0,
+    createdAt: new Date("2023-05-10"),
+    updatedAt: new Date("2023-05-10"),
+  },
+  {
+    id: "4",
+    productId: "3", // 喵星玩具互動逗貓棒
+    userId: "5", // newbie
+    rating: 5,
+    comment: "我家貓咪超愛這個玩具！每天都要玩好幾次，可以更換的玩具頭設計很棒。",
+    mediaUrls: ["/images/reviews/product-review4-1.jpg"],
+    isVerifiedPurchase: true,
+    helpfulCount: 10,
+    reportCount: 0,
+    createdAt: new Date("2023-06-05"),
+    updatedAt: new Date("2023-06-05"),
+  },
+  {
+    id: "5",
+    productId: "5", // 智慧貓屋自動餵食器
+    userId: "3", // catmom
+    rating: 4,
+    comment: "功能很齊全，APP操作也很方便，但有時候會卡住不出食，希望能改進。",
+    mediaUrls: [],
+    isVerifiedPurchase: true,
+    helpfulCount: 8,
+    reportCount: 0,
+    createdAt: new Date("2023-05-25"),
+    updatedAt: new Date("2023-05-25"),
+  },
+]
+
+export const cartItems: CartItem[] = [
+  {
+    id: "1",
+    userId: "2", // meowlover
+    productId: "3", // 喵星玩具互動逗貓棒
+    quantity: 1,
+    createdAt: new Date("2023-06-15"),
+    updatedAt: new Date("2023-06-15"),
+  },
+  {
+    id: "2",
+    userId: "2", // meowlover
+    productId: "4", // 貓咪健康毛球護理膏
+    quantity: 2,
+    createdAt: new Date("2023-06-15"),
+    updatedAt: new Date("2023-06-15"),
+  },
+]
+
+export const orders: Order[] = [
+  {
+    id: "1",
+    userId: "2", // meowlover
+    orderNumber: "ORD20230610001",
+    status: "COMPLETED",
+    totalAmount: 2030,
+    discountAmount: 0,
+    shippingAmount: 100,
+    finalAmount: 2130,
+    paymentMethod: "credit_card",
+    paymentStatus: "PAID",
+    shippingMethod: "standard",
+    shippingStatus: "DELIVERED",
+    recipientName: "喵星人愛好者",
+    recipientPhone: "0912345678",
+    shippingAddress: "台北市中山區喵喵路123號",
+    createdAt: new Date("2023-06-10"),
+    updatedAt: new Date("2023-06-12"),
+  },
+  {
+    id: "2",
+    userId: "2", // meowlover
+    orderNumber: "ORD20230525002",
+    status: "COMPLETED",
+    totalAmount: 1200,
+    discountAmount: 240,
+    shippingAmount: 100,
+    finalAmount: 1060,
+    paymentMethod: "credit_card",
+    paymentStatus: "PAID",
+    shippingMethod: "standard",
+    shippingStatus: "DELIVERED",
+    recipientName: "喵星人愛好者",
+    recipientPhone: "0912345678",
+    shippingAddress: "台北市中山區喵喵路123號",
+    createdAt: new Date("2023-05-25"),
+    updatedAt: new Date("2023-05-27"),
+  },
+]
+
+export const orderItems: OrderItem[] = [
+  {
+    id: "1",
+    orderId: "1", // ORD20230610001
+    productId: "3", // 喵星玩具互動逗貓棒
+    productName: "喵星玩具互動逗貓棒",
+    productImage: "/images/products/product3-thumbnail.jpg",
+    quantity: 1,
+    unitPrice: 350,
+    totalPrice: 350,
+    createdAt: new Date("2023-06-10"),
+    updatedAt: new Date("2023-06-10"),
+  },
+  {
+    id: "2",
+    orderId: "1", // ORD20230610001
+    productId: "4", // 貓咪健康毛球護理膏
+    productName: "貓咪健康毛球護理膏",
+    productImage: "/images/products/product4-thumbnail.jpg",
+    quantity: 2,
+    unitPrice: 580,
+    totalPrice: 1160,
+    createdAt: new Date("2023-06-10"),
+    updatedAt: new Date("2023-06-10"),
+  },
+  {
+    id: "3",
+    orderId: "1", // ORD20230610001
+    productId: "7", // 喵星玩具貓抓板
+    productName: "喵星玩具貓抓板",
+    productImage: "/images/products/product7-thumbnail.jpg",
+    quantity: 1,
+    unitPrice: 480,
+    totalPrice: 480,
+    createdAt: new Date("2023-06-10"),
+    updatedAt: new Date("2023-06-10"),
+  },
+  {
+    id: "4",
+    orderId: "2", // ORD20230525002
+    productId: "1", // 喵喵樂高蛋白無穀貓飼料
+    productName: "喵喵樂高蛋白無穀貓飼料",
+    productImage: "/images/products/product1-thumbnail.jpg",
+    quantity: 1,
+    unitPrice: 1200,
+    totalPrice: 1200,
+    createdAt: new Date("2023-05-25"),
+    updatedAt: new Date("2023-05-25"),
+  },
+]
