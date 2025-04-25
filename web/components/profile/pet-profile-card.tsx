@@ -17,7 +17,7 @@ export default function PetProfileCard({ pet, locale }: PetProfileCardProps) {
       className="flex items-center gap-3 hover:bg-secondary/20 p-2 rounded-md transition-colors"
     >
       <Image
-        src={pet.avatarUrl || "/placeholder.svg?height=40&width=40&query=cat"}
+        src={pet.primaryImageUrl || "/placeholder.svg?height=40&width=40&query=cat"}
         alt={pet.name}
         width={40}
         height={40}

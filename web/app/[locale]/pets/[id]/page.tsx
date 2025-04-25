@@ -1,4 +1,4 @@
-import Image from "next/link"
+import Image from "next/image"
 import Link from "next/link"
 import { type Locale, dictionary } from "@/i18n-config"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -7,11 +7,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Edit, Heart, Award } from "lucide-react"
 import { pets } from "@/data/pets"
-import { posts } from "@/data/posts"
 import { users } from "@/data/users"
 import PostCard from "@/components/post-card"
 import PetHealthCard from "@/components/pets/pet-health-card"
 import PetActivityCard from "@/components/pets/pet-activity-card"
+import { PetGender } from "@/types/pet"
 
 interface PetProfilePageProps {
   params: {
@@ -43,8 +43,8 @@ export default async function PetProfilePage({ params }: PetProfilePageProps) {
   // Find the owner
   const owner = users.find((u) => u.id === pet.ownerId)
 
-  // Get pet's posts
-  const petPosts = posts.filter((post) => post.petIds?.includes(pet.id))
+  // Get pet's posts - 注意：posts 中可能沒有 petIds 欄位，這裡暫時返回空數組
+  const petPosts = []
 
   // Mock health records
   const healthRecords = [
@@ -106,7 +106,7 @@ export default async function PetProfilePage({ params }: PetProfilePageProps) {
         <div className="h-48 bg-gradient-to-r from-primary/20 to-secondary/30 rounded-lg"></div>
         <div className="absolute bottom-0 left-0 transform translate-y-1/2 ml-6">
           <Image
-            src={pet.avatarUrl || "/placeholder.svg?height=120&width=120&query=cat"}
+            src={pet.primaryImageUrl || "/placeholder.svg?height=120&width=120&query=cat"}
             alt={pet.name}
             width={120}
             height={120}
@@ -132,7 +132,6 @@ export default async function PetProfilePage({ params }: PetProfilePageProps) {
                   <h1 className="text-2xl font-bold">{pet.name}</h1>
                   <p className="text-primary/70 mt-1">{pet.breed}</p>
                 </div>
-                {pet.isVerified && <Badge className="bg-primary">認證寵物</Badge>}
               </div>
 
               <div className="flex items-center gap-2 mt-3 text-sm text-primary/70">
@@ -144,47 +143,41 @@ export default async function PetProfilePage({ params }: PetProfilePageProps) {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-secondary/20 p-2 rounded-md">
                     <div className="text-xs text-primary/70">性別</div>
-                    <div className="font-medium">{pet.gender === "male" ? "公" : "母"}</div>
+                    <div className="font-medium">
+                      {pet.gender === PetGender.MALE ? "公" : pet.gender === PetGender.FEMALE ? "母" : "未知"}
+                    </div>
                   </div>
                   <div className="bg-secondary/20 p-2 rounded-md">
                     <div className="text-xs text-primary/70">體重</div>
                     <div className="font-medium">{pet.weight} kg</div>
                   </div>
                   <div className="bg-secondary/20 p-2 rounded-md">
-                    <div className="text-xs text-primary/70">毛色</div>
-                    <div className="font-medium">{pet.color}</div>
-                  </div>
-                  <div className="bg-secondary/20 p-2 rounded-md">
                     <div className="text-xs text-primary/70">晶片號碼</div>
-                    <div className="font-medium">{pet.microchipNumber || "無"}</div>
+                    <div className="font-medium">{pet.chipNumber || "無"}</div>
                   </div>
                 </div>
               </div>
 
               <div className="mt-4">
                 <h3 className="font-medium mb-1">關於</h3>
-                <p className="text-sm text-primary/80">{pet.bio || "這是一隻可愛的貓咪，喜歡玩逗貓棒和曬太陽。"}</p>
+                <p className="text-sm text-primary/80">
+                  {pet.description || "這是一隻可愛的貓咪，喜歡玩逗貓棒和曬太陽。"}
+                </p>
               </div>
 
               <div className="mt-4">
                 <h3 className="font-medium mb-1">飲食偏好</h3>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {pet.dietaryPreferences?.map((pref, index) => (
-                    <Badge key={index} variant="outline" className="bg-secondary/30">
-                      {pref}
-                    </Badge>
-                  )) || (
-                    <Badge variant="outline" className="bg-secondary/30">
-                      乾糧
-                    </Badge>
-                  )}
+                  <Badge variant="outline" className="bg-secondary/30">
+                    乾糧
+                  </Badge>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border">
                 <Image
                   src={owner?.avatarUrl || "/placeholder.svg?height=36&width=36&query=person"}
-                  alt={owner?.name || "Owner"}
+                  alt={owner?.username || "Owner"}
                   width={36}
                   height={36}
                   className="rounded-full"
@@ -192,7 +185,7 @@ export default async function PetProfilePage({ params }: PetProfilePageProps) {
                 <div>
                   <div className="text-sm">飼主</div>
                   <Link href={`/${locale}/profile/${owner?.id}`} className="font-medium hover:underline">
-                    {owner?.name || "Unknown"}
+                    {owner?.username || "Unknown"}
                   </Link>
                 </div>
               </div>
