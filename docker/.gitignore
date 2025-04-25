@@ -1,0 +1,52 @@
+# Docker Volumes
+volumes/db/data/
+volumes/storage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Database dumps and backups
+*.dump
+*.sql.gz
+*.backup
+
+# Temporary files
+*.tmp
+tmp/
+temp/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Node.js (if you're using Node in your project)
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Prisma (if you're using Prisma)
+.prisma/
+prisma/migrations/
+prisma/.env
+
+# Supabase CLI generated files
+.supabase/
+
+# App specific
+dist/
+build/
+out/

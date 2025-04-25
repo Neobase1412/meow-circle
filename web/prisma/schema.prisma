@@ -1,0 +1,1291 @@
+// This is your Prisma schema file for 喵圈 (Meow Circle)
+// Formatted according to Prisma standards
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//============================
+// 核心用戶模型
+//============================
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  phone             String?   @unique
+  username          String    @unique
+  passwordHash      String? // 允許 OAuth 登入的用戶不需要密碼
+  fullName          String?
+  bio               String?
+  avatarUrl         String?
+  coverImageUrl     String?
+  isVerified        Boolean   @default(false)
+  lastLoginAt       DateTime?
+  joinedAt          DateTime  @default(now())
+  isActive          Boolean   @default(true)
+  role              UserRole  @default(USER)
+  notificationPrefs Json? // 存儲通知偏好設定的 JSON 物件
+  settings          Json? // 用戶其他設定
+
+  // 會員等級相關欄位
+  membershipLevel  MembershipLevel @default(REGULAR)
+  membershipPoints Int             @default(0)
+  membershipExpiry DateTime? // 會員等級到期日
+
+  // 個人化偏好
+  preferences Json? // 存儲問卷調查結果
+
+  // 社交關係
+  followers Follow[] @relation("follower")
+  following Follow[] @relation("following")
+
+  // 內容關聯
+  posts       Post[]
+  comments    Comment[]
+  likes       Like[]
+  collections Collection[]
+  activities  Activity[]
+
+  // 寵物關聯
+  pets Pet[]
+
+  // 服務相關
+  serviceBookings ServiceBooking[]
+  serviceReviews  ServiceReview[]
+
+  // 活動相關
+  eventParticipants EventParticipant[]
+  organizedEvents   Event[]
+
+  // 聊天相關
+  sentMessages     Message[]        @relation("sender")
+  receivedMessages Message[]        @relation("receiver")
+  chatRoomMembers  ChatRoomMember[]
+
+  // 交友配對相關
+  sentMatches     Match[] @relation("matcher")
+  receivedMatches Match[] @relation("matched")
+
+  // 其他關聯
+  dailyTasks    DailyTaskProgress[]
+  notifications Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([username])
+  @@index([membershipLevel])
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+  SYSTEM
+}
+
+enum MembershipLevel {
+  REGULAR // 一般會員
+  SILVER // 銀牌會員
+  GOLD // 金牌會員
+  DIAMOND // 鑽石會員
+}
+
+//============================
+// 社交關係模型
+//============================
+
+model Follow {
+  id          String   @id @default(cuid())
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followerId  String
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  followingId String
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model Match {
+  id        String      @id @default(cuid())
+  matcher   User        @relation("matcher", fields: [matcherId], references: [id], onDelete: Cascade)
+  matcherId String
+  matched   User        @relation("matched", fields: [matchedId], references: [id], onDelete: Cascade)
+  matchedId String
+  status    MatchStatus
+  createdAt DateTime    @default(now())
+  matchedAt DateTime?
+
+  @@unique([matcherId, matchedId])
+  @@index([matcherId])
+  @@index([matchedId])
+  @@index([status])
+}
+
+enum MatchStatus {
+  LIKED // 單向喜歡
+  MATCHED // 互相喜歡
+  REJECTED // 已拒絕
+}
+
+//============================
+// 寵物相關模型
+//============================
+
+model Pet {
+  id              String     @id @default(cuid())
+  name            String
+  owner           User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId         String
+  breed           String?
+  gender          PetGender?
+  birthDate       DateTime?
+  adoptionDate    DateTime?
+  chipNumber      String?    @unique
+  weight          Float?
+  description     String?
+  primaryImageUrl String?
+  isActive        Boolean    @default(true)
+
+  // 寵物健康相關
+  healthRecords HealthRecord[]
+  vaccinations  Vaccination[]
+
+  // 寵物生活紀錄
+  lifeRecords LifeRecord[]
+
+  // 寵物相簿
+  albums      Album[]
+  albumPhotos AlbumPhoto[] @relation("petTag")
+
+  // 寵物紀念（僅限已逝寵物）
+  memorialPage MemorialPage?
+
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  ServiceBooking   ServiceBooking? @relation(fields: [serviceBookingId], references: [id])
+  serviceBookingId String?
+
+  @@index([ownerId])
+  @@index([isActive])
+}
+
+enum PetGender {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
+model HealthRecord {
+  id           String   @id @default(cuid())
+  pet          Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  petId        String
+  recordType   String
+  title        String
+  description  String
+  date         DateTime
+  veterinarian String?
+  hospital     String?
+  attachments  String[] // 存儲附件URL的陣列
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([petId])
+  @@index([date])
+}
+
+model Vaccination {
+  id              String    @id @default(cuid())
+  pet             Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  petId           String
+  vaccineName     String
+  date            DateTime
+  expiryDate      DateTime?
+  hospital        String?
+  veterinarian    String?
+  batchNumber     String?
+  notes           String?
+  reminderEnabled Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([petId])
+  @@index([date])
+  @@index([expiryDate])
+}
+
+model LifeRecord {
+  id         String         @id @default(cuid())
+  pet        Pet            @relation(fields: [petId], references: [id], onDelete: Cascade)
+  petId      String
+  recordType LifeRecordType
+  title      String
+  content    String
+  mood       String?
+  photos     String[] // 存儲照片URL的陣列
+  recordDate DateTime
+  isPublic   Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([petId])
+  @@index([recordType])
+  @@index([recordDate])
+  @@index([isPublic])
+}
+
+enum LifeRecordType {
+  DIET // 飲食
+  WEIGHT // 體重
+  ACTIVITY // 活動
+  GROOMING // 美容
+  BEHAVIOR // 行為
+  MILESTONE // 里程碑
+  OTHER // 其他
+}
+
+model Album {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  coverUrl    String?
+  pet         Pet          @relation(fields: [petId], references: [id], onDelete: Cascade)
+  petId       String
+  photos      AlbumPhoto[]
+  isPublic    Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([petId])
+  @@index([isPublic])
+}
+
+model AlbumPhoto {
+  id       String    @id @default(cuid())
+  album    Album     @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  albumId  String
+  imageUrl String
+  caption  String?
+  takenAt  DateTime?
+
+  // 可標記寵物
+  taggedPets Pet[] @relation("petTag")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([albumId])
+}
+
+model MemorialPage {
+  id            String    @id @default(cuid())
+  pet           Pet       @relation(fields: [petId], references: [id])
+  petId         String    @unique
+  title         String
+  story         String
+  memorialDate  DateTime
+  rainbowDate   DateTime? // 彩虹橋日期
+  coverImageUrl String?
+  isPublic      Boolean   @default(false)
+
+  // 紀念星球相關
+  planetDesign Json? // 存儲星球設計的 JSON 資料
+  virtualItems VirtualItem[]
+  memories     MemoryItem[]
+  visitors     PageVisit[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isPublic])
+}
+
+model VirtualItem {
+  id             String       @id @default(cuid())
+  memorialPage   MemorialPage @relation(fields: [memorialPageId], references: [id], onDelete: Cascade)
+  memorialPageId String
+  itemType       String
+  name           String
+  imageUrl       String
+  position       Json // 存儲位置資訊 {x, y, z}
+  scale          Json? // 存儲比例資訊 {x, y, z}
+  rotation       Json? // 存儲旋轉資訊 {x, y, z}
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([memorialPageId])
+}
+
+model MemoryItem {
+  id             String       @id @default(cuid())
+  memorialPage   MemorialPage @relation(fields: [memorialPageId], references: [id], onDelete: Cascade)
+  memorialPageId String
+  title          String
+  content        String
+  imageUrl       String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([memorialPageId])
+}
+
+model PageVisit {
+  id             String       @id @default(cuid())
+  memorialPage   MemorialPage @relation(fields: [memorialPageId], references: [id], onDelete: Cascade)
+  memorialPageId String
+  visitorIp      String?
+  visitorId      String? // 若登入用戶，存儲用戶ID
+  message        String?
+  visitedAt      DateTime     @default(now())
+
+  @@index([memorialPageId])
+  @@index([visitorId])
+}
+
+//============================
+// 社群內容模型
+//============================
+
+model Post {
+  id         String     @id @default(cuid())
+  author     User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId   String
+  content    String
+  mood       String?
+  location   String?
+  visibility Visibility @default(PUBLIC)
+
+  // 媒體內容
+  mediaUrls String[] // 存儲媒體URL的陣列
+  mediaType MediaType @default(IMAGE)
+
+  // 互動資料
+  comments    Comment[]
+  likes       Like[]
+  collections Collection[]
+
+  // 分類資料
+  tags   Tag[]
+  topics Topic[] @relation("TopicPosts")
+
+  viewCount  Int     @default(0)
+  isPinned   Boolean @default(false)
+  isArchived Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([createdAt])
+  @@index([visibility])
+  @@index([mediaType])
+  @@index([isPinned])
+  @@index([isArchived])
+}
+
+enum Visibility {
+  PUBLIC // 公開
+  FOLLOWERS // 僅追蹤者
+  PRIVATE // 僅自己
+}
+
+enum MediaType {
+  NONE // 沒有媒體
+  IMAGE // 圖片
+  VIDEO // 影片
+  AUDIO // 音頻
+  DOCUMENT // 文件
+  MIXED // 混合媒體
+}
+
+model Comment {
+  id       String  @id @default(cuid())
+  post     Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId   String
+  author   User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
+  content  String
+  mediaUrl String?
+
+  // 回覆層級
+  parentId String? // 若為回覆評論，存儲父評論ID
+
+  likes     Like[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([parentId])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String?
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId, commentId])
+  @@index([userId])
+  @@index([postId])
+  @@index([commentId])
+}
+
+model Collection {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  posts     Post[]
+  count     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([count])
+}
+
+model Topic {
+  id          String  @id @default(cuid())
+  title       String  @unique
+  description String?
+  iconUrl     String?
+  coverUrl    String?
+
+  // 分類
+  category TopicCategory @default(GENERAL)
+
+  // 文章關聯
+  posts Post[] @relation("TopicPosts")
+
+  // 統計
+  followerCount Int @default(0)
+  postCount     Int @default(0)
+
+  isOfficial Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([title])
+  @@index([category])
+  @@index([isOfficial])
+  @@index([followerCount])
+}
+
+enum TopicCategory {
+  GENERAL // 一般討論
+  EXPERIENCE // 經驗分享
+  HEALTH // 健康
+  NUTRITION // 營養
+  BEHAVIOR // 行為
+  PRODUCTS // 產品
+  ACTIVITIES // 活動
+  BEGINNERS // 新手專區
+  STRAY_CARE // 浪浪關懷
+  OFFICIAL // 官方消息
+}
+
+//============================
+// 訊息與通知模型
+//============================
+
+model ChatRoom {
+  id            String           @id @default(cuid())
+  name          String? // 群組聊天室名稱，私人聊天為空
+  type          ChatRoomType     @default(PRIVATE)
+  members       ChatRoomMember[]
+  messages      Message[]
+  lastMessageAt DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([type])
+  @@index([lastMessageAt])
+}
+
+enum ChatRoomType {
+  PRIVATE // 私人聊天
+  GROUP // 群組聊天
+  SYSTEM // 系統通知
+}
+
+model ChatRoomMember {
+  id         String    @id @default(cuid())
+  chatRoom   ChatRoom  @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  chatRoomId String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  isAdmin    Boolean   @default(false)
+  isMuted    Boolean   @default(false)
+  lastReadAt DateTime?
+  joinedAt   DateTime  @default(now())
+
+  @@unique([chatRoomId, userId])
+  @@index([chatRoomId])
+  @@index([userId])
+}
+
+model Message {
+  id         String    @id @default(cuid())
+  chatRoom   ChatRoom  @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  chatRoomId String
+  sender     User      @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId   String
+  receiver   User?     @relation("receiver", fields: [receiverId], references: [id]) // 僅限私人訊息
+  receiverId String?
+  content    String
+  mediaUrls  String[] // 存儲媒體URL的陣列
+  mediaType  MediaType @default(NONE)
+  isRead     Boolean   @default(false)
+  sentAt     DateTime  @default(now())
+
+  @@index([chatRoomId])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([sentAt])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  type      NotificationType
+  title     String
+  content   String
+  imageUrl  String?
+  data      Json? // 存儲相關資料的 JSON 物件
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  SYSTEM // 系統通知
+  LIKE // 點讚通知
+  COMMENT // 評論通知
+  FOLLOW // 追蹤通知
+  MATCH // 配對通知
+  EVENT // 活動通知
+  MENTION // 提及通知
+  TASK // 任務通知
+  MESSAGE // 訊息通知
+}
+
+model Activity {
+  id        String       @id @default(cuid())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  type      ActivityType
+  data      Json // 存儲活動相關資料
+  createdAt DateTime     @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum ActivityType {
+  POST_CREATE
+  POST_LIKE
+  POST_COMMENT
+  FOLLOW_USER
+  JOIN_EVENT
+  SERVICE_BOOKING
+  PROFILE_UPDATE
+  PET_ADD
+  MEMORIAL_CREATE
+}
+
+//============================
+// 寵物生活服務模型
+//============================
+
+model Service {
+  id            String          @id @default(cuid())
+  name          String
+  description   String
+  category      ServiceCategory
+  coverImageUrl String?
+  iconUrl       String?
+
+  // 服務提供者
+  provider   ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  providerId String
+
+  // 服務項目與價格
+  items ServiceItem[]
+
+  // 相關預約與評價
+  bookings ServiceBooking[]
+  reviews  ServiceReview[]
+
+  isActive      Boolean @default(true)
+  isRecommended Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([providerId])
+  @@index([isActive])
+  @@index([isRecommended])
+}
+
+enum ServiceCategory {
+  HEALTH_CHECK // 健康檢查
+  GROOMING // 美容服務
+  BOARDING // 寵物住宿
+  PET_CAFE // 貓咪咖啡廳
+  VETERINARY // 動物醫院
+  MEMORIAL // 紀念服務
+  TRAINING // 訓練服務
+  PET_SITTING // 寵物保姆
+  OTHER // 其他
+}
+
+model ServiceProvider {
+  id            String  @id @default(cuid())
+  name          String
+  description   String
+  logoUrl       String?
+  coverImageUrl String?
+  address       String?
+  city          String?
+  district      String?
+  zipCode       String?
+  phone         String?
+  email         String?
+  website       String?
+  businessHours Json? // 存儲營業時間的 JSON 物件
+
+  // 認證與資質
+  isVerified     Boolean  @default(false)
+  certifications String[]
+
+  // 提供的服務
+  services Service[]
+
+  // 統計資料
+  ratingAvg   Float @default(0)
+  reviewCount Int   @default(0)
+
+  // 標籤
+  tags String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([city, district])
+  @@index([isVerified])
+  @@index([ratingAvg])
+}
+
+model ServiceItem {
+  id          String  @id @default(cuid())
+  service     Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId   String
+  name        String
+  description String?
+  price       Float
+  duration    Int? // 服務時間（分鐘）
+  imageUrl    String?
+  isPopular   Boolean @default(false)
+
+  // 預約關聯
+  bookings ServiceBooking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([serviceId])
+  @@index([price])
+  @@index([isPopular])
+}
+
+model ServiceBooking {
+  id            String      @id @default(cuid())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  service       Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId     String
+  serviceItem   ServiceItem @relation(fields: [serviceItemId], references: [id], onDelete: Cascade)
+  serviceItemId String
+
+  // 預約資訊
+  bookingDate DateTime
+  startTime   DateTime
+  endTime     DateTime
+  status      BookingStatus @default(PENDING)
+
+  // 可選關聯
+  pets Pet[]
+
+  // 付款資訊
+  paymentAmount Float?
+  paymentStatus PaymentStatus?
+  paymentMethod String?
+
+  // 評價相關
+  review ServiceReview?
+
+  // 其他資訊
+  note         String?
+  cancelReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([serviceId])
+  @@index([serviceItemId])
+  @@index([bookingDate])
+  @@index([status])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
+model ServiceReview {
+  id        String  @id @default(cuid())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId String
+
+  // 評價資訊
+  rating    Int
+  comment   String?
+  mediaUrls String[] // 存儲媒體URL的陣列
+
+  // 相關預約
+  booking   ServiceBooking? @relation(fields: [bookingId], references: [id])
+  bookingId String?         @unique
+
+  // 回應
+  providerReply String?
+  repliedAt     DateTime?
+
+  // 互動統計
+  helpfulCount Int @default(0)
+  reportCount  Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([serviceId])
+  @@index([rating])
+  @@index([createdAt])
+}
+
+//============================
+// 活動與社群互動模型
+//============================
+
+model Event {
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  coverImageUrl String?
+  imageUrls     String[]
+
+  // 舉辦者
+  organizer   User   @relation(fields: [organizerId], references: [id])
+  organizerId String
+
+  // 活動資訊
+  eventType   EventType
+  startDate   DateTime
+  endDate     DateTime
+  location    String?
+  address     String?
+  city        String?
+  district    String?
+  coordinates Json? // 存儲經緯度 {lat, lng}
+
+  // 參與者
+  participants    EventParticipant[]
+  maxParticipants Int?
+
+  // 活動費用
+  fee            Float?
+  feeDescription String?
+
+  // 狀態
+  status        EventStatus @default(UPCOMING)
+  isOfficial    Boolean     @default(false)
+  isOnline      Boolean     @default(false)
+  isPetFriendly Boolean     @default(true)
+
+  // 社群相關
+  tags      String[]
+  viewCount Int      @default(0)
+  likeCount Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizerId])
+  @@index([eventType])
+  @@index([startDate])
+  @@index([status])
+  @@index([city, district])
+  @@index([isOfficial])
+  @@index([isOnline])
+}
+
+enum EventType {
+  WORKSHOP
+  MEETUP
+  FAIR
+  LECTURE
+  OUTDOOR
+  EXCHANGE
+  FUNDRAISING
+  OTHER
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+model EventParticipant {
+  id      String @id @default(cuid())
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+
+  // 參與狀態
+  status ParticipantStatus @default(REGISTERED)
+
+  // 票務資訊
+  ticketCode    String?        @unique
+  paymentStatus PaymentStatus?
+
+  // 其他
+  joinedAt    DateTime  @default(now())
+  checkedInAt DateTime?
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@index([status])
+}
+
+enum ParticipantStatus {
+  REGISTERED
+  CONFIRMED
+  ATTENDED
+  CANCELLED
+  WAITLISTED
+}
+
+//============================
+// 每日任務與獎勵模型
+//============================
+
+model DailyTask {
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  taskType      TaskType
+  requiredCount Int      @default(1)
+  rewardPoints  Int      @default(10)
+  iconUrl       String?
+
+  // 任務進度追蹤
+  progress DailyTaskProgress[]
+
+  // 任務狀態
+  isActive  Boolean   @default(true)
+  startDate DateTime?
+  endDate   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([taskType])
+  @@index([isActive])
+}
+
+enum TaskType {
+  POST_CREATE // 發布貼文
+  POST_COMMENT // 評論貼文
+  POST_LIKE // 點贊貼文
+  DAILY_LOGIN // 每日登入
+  UPLOAD_PET_PHOTO // 上傳寵物照片
+  FOLLOW_USER // 追蹤用戶
+  COMPLETE_PROFILE // 完善個人資料
+  JOIN_DISCUSSION // 參與討論
+  SHARE_POST // 分享貼文
+  VIEW_ADS // 觀看廣告
+  OTHER // 其他任務
+}
+
+model DailyTaskProgress {
+  id     String    @id @default(cuid())
+  task   DailyTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId String
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // 進度追蹤
+  progress      Int       @default(0)
+  completed     Boolean   @default(false)
+  completedAt   DateTime?
+  rewardClaimed Boolean   @default(false)
+
+  // 任務期間
+  date DateTime @default(now())
+
+  @@unique([taskId, userId, date])
+  @@index([taskId])
+  @@index([userId])
+  @@index([date])
+  @@index([completed])
+}
+
+model Reward {
+  id            String     @id @default(cuid())
+  title         String
+  description   String
+  pointsCost    Int
+  type          RewardType
+  couponCode    String?    @unique
+  discountValue Float?
+  validFrom     DateTime?
+  validUntil    DateTime?
+  imageUrl      String?
+
+  // 兌換記錄
+  redemptions RewardRedemption[]
+
+  // 狀態
+  isActive Boolean @default(true)
+  stock    Int? // 若有庫存限制
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([pointsCost])
+  @@index([isActive])
+}
+
+enum RewardType {
+  COUPON // 優惠券
+  DISCOUNT // 折扣
+  SERVICE // 免費服務
+  VIRTUAL_ITEM // 虛擬物品
+  BADGE // 徽章
+  MEMBERSHIP // 會員權益
+  OTHER // 其他
+}
+
+model RewardRedemption {
+  id          String    @id @default(cuid())
+  reward      Reward    @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  rewardId    String
+  userId      String
+  pointsSpent Int
+  redeemedAt  DateTime  @default(now())
+  expiresAt   DateTime?
+  isUsed      Boolean   @default(false)
+  usedAt      DateTime?
+
+  @@index([rewardId])
+  @@index([userId])
+  @@index([redeemedAt])
+}
+
+//============================
+// AI 與推薦系統相關模型
+//============================
+
+model UserInteraction {
+  id              String          @id @default(cuid())
+  userId          String
+  interactionType InteractionType
+  targetId        String // 互動目標ID (服務ID、貼文ID等)
+  targetType      String // 互動目標類型 (Service, Post, Topic等)
+  value           Float? // 互動權重，例如評分
+  metadata        Json? // 其他互動相關資料
+  createdAt       DateTime        @default(now())
+
+  @@index([userId])
+  @@index([interactionType])
+  @@index([targetId, targetType])
+  @@index([createdAt])
+}
+
+enum InteractionType {
+  VIEW // 瀏覽
+  CLICK // 點擊
+  LIKE // 點贊
+  COMMENT // 評論
+  SHARE // 分享
+  SAVE // 收藏
+  FOLLOW // 追蹤
+  RATE // 評分
+  TIME_SPENT // 停留時間
+  SEARCH // 搜尋
+  BOOK // 預約
+}
+
+model Recommendation {
+  id                 String             @id @default(cuid())
+  userId             String
+  recommendationType RecommendationType
+  targetId           String // 推薦目標ID
+  targetType         String // 推薦目標類型
+  score              Float // 推薦分數
+  reason             String? // 推薦原因
+  isShown            Boolean            @default(false)
+  isClicked          Boolean            @default(false)
+  shownAt            DateTime?
+  clickedAt          DateTime?
+  createdAt          DateTime           @default(now())
+  expiresAt          DateTime // 推薦過期時間
+
+  @@index([userId])
+  @@index([recommendationType])
+  @@index([targetId, targetType])
+  @@index([score])
+  @@index([isShown])
+  @@index([createdAt])
+  @@index([expiresAt])
+}
+
+enum RecommendationType {
+  POST // 推薦貼文
+  USER // 推薦用戶
+  PET_MATCH // 寵物配對
+  SERVICE // 推薦服務
+  TOPIC // 推薦話題
+  EVENT // 推薦活動
+  PRODUCT // 推薦產品
+}
+
+model UserSegment {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  criteria    Json // 分群條件
+  userIds     String[] // 屬於此分群的用戶ID
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model AIModel {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  modelType   String
+  version     String
+  parameters  Json? // 模型參數
+  metrics     Json? // 模型評估指標
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([modelType])
+  @@index([isActive])
+}
+
+//============================
+// 系統與設定相關模型
+//============================
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  configKey   String   @unique
+  configValue String
+  description String?
+  dataType    String // string, number, boolean, json
+  isPublic    Boolean  @default(false)
+  updatedBy   String? // 管理者ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([configKey])
+  @@index([isPublic])
+}
+
+model Announcement {
+  id              String           @id @default(cuid())
+  title           String
+  content         String
+  type            AnnouncementType
+  isImportant     Boolean          @default(false)
+  isActive        Boolean          @default(true)
+  targetUserGroup String? // 目標用戶群體，可為空表示全部用戶
+  startDate       DateTime
+  endDate         DateTime?
+  readCount       Int              @default(0)
+  createdBy       String // 管理者ID
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([type])
+  @@index([isImportant])
+  @@index([isActive])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+enum AnnouncementType {
+  SYSTEM_UPDATE // 系統更新
+  EVENT // 活動預告
+  MAINTENANCE // 維護通知
+  POLICY_UPDATE // 政策更新
+  PROMOTION // 促銷活動
+  NEWS // 新聞
+  OTHER // 其他
+}
+
+model ErrorLog {
+  id           String   @id @default(cuid())
+  errorCode    String?
+  errorMessage String
+  stackTrace   String?
+  userId       String? // 發生錯誤的用戶，可為空
+  path         String? // API路徑或頁面
+  method       String? // HTTP方法
+  requestData  Json? // 請求資料
+  browserInfo  String? // 瀏覽器資訊
+  ipAddress    String? // IP地址
+  createdAt    DateTime @default(now())
+
+  @@index([errorCode])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model ApiUsage {
+  id           String   @id @default(cuid())
+  path         String
+  method       String
+  userId       String?
+  responseTime Int // 毫秒
+  statusCode   Int
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  @@index([path, method])
+  @@index([userId])
+  @@index([statusCode])
+  @@index([createdAt])
+}
+
+//============================
+// 權限與安全相關模型
+//============================
+
+model OAuthProvider {
+  id             String    @id @default(cuid())
+  providerId     String    @unique // google, facebook, line等
+  userId         String
+  providerUserId String
+  accessToken    String?
+  refreshToken   String?
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([providerId, providerUserId])
+  @@index([userId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String? // 執行操作的用戶，可為系統操作
+  action     String
+  entityType String // 操作的實體類型，如User, Post等
+  entityId   String? // 操作的實體ID
+  oldValue   Json? // 操作前的值
+  newValue   Json? // 操作後的值
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model UserToken {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenType  TokenType
+  token      String    @unique
+  expiresAt  DateTime
+  isRevoked  Boolean   @default(false)
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([tokenType])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([isRevoked])
+}
+
+enum TokenType {
+  ACCESS // 存取令牌
+  REFRESH // 更新令牌
+  RESET_PASSWORD // 重設密碼
+  EMAIL_VERIFY // 電子郵件驗證
+  REMEMBER_ME // 記住我
+  DEVICE // 裝置令牌
+  API // API令牌
+}
