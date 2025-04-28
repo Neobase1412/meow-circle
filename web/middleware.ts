@@ -33,10 +33,14 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // === 1. Handle i18n Locale Detection and Redirection ===
-  const pathnameIsMissingLocale = // ... (i18n logic as before) ...
+  const pathnameIsMissingLocale = i18n.locales.every(
+    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
+  );
   if (pathnameIsMissingLocale) {
-      // ... (i18n redirect logic as before) ...
-      // return NextResponse.redirect(...) // Redirect if needed
+      const locale = getLocale(request);
+      return NextResponse.redirect(
+        new URL(`/${locale}${pathname}`, request.url)
+      );
   }
 
   // === 2. Handle Supabase Session Refresh (using the pattern from the official guide) ===
