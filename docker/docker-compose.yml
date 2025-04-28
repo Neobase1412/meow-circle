@@ -526,5 +526,12 @@ services:
         "/app/bin/migrate && /app/bin/supavisor eval \"$$(cat /etc/pooler/pooler.exs)\" && /app/bin/server"
       ]
 
+  mailhog:
+    container_name: supabase-mailhog
+    image: mailhog/mailhog:latest # 使用官方 MailHog 映像
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP 端口 (供其他容器內部連接)
+      - "8025:8025" # Web UI 端口 (供你在瀏覽器訪問)
 volumes:
   db-config:

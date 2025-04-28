@@ -1,81 +1,191 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Facebook } from "lucide-react"
-import { type Locale, dictionary } from "@/i18n-config"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Separator } from "@/components/ui/separator"
+import type React from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Facebook } from "lucide-react";
+import { type Locale, dictionary } from "@/i18n-config";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { createClient } from '@/lib/supabase/client'; // Import Supabase client
+import { createProfileServerAction } from '@/actions/authActions'; // Import the server action
 
 interface RegisterFormProps {
-  locale: Locale
+  locale: Locale;
 }
 
 export default function RegisterForm({ locale }: RegisterFormProps) {
-  const t = dictionary[locale]
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const t = dictionary[locale];
+  const router = useRouter();
+  const supabase = createClient(); // Instantiate Supabase client
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null); // Add error state
+  const [successMessage, setSuccessMessage] = useState<string | null>(null); // Add success state
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
     agreeTerms: false,
-  })
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const handleCheckboxChange = (checked: boolean) => {
-    setFormData((prev) => ({ ...prev, agreeTerms: checked }))
-  }
+  const handleCheckboxChange = (checked: boolean | "indeterminate") => {
+      // Ensure checked is a boolean
+      const isChecked = typeof checked === 'boolean' ? checked : false;
+      setFormData((prev) => ({ ...prev, agreeTerms: isChecked }));
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+    setError(null);
+    setSuccessMessage(null);
 
     if (formData.password !== formData.confirmPassword) {
-      alert("密碼不一致，請重新確認")
-      return
+      setError(t["password-mismatch"] || "密碼不一致，請重新確認");
+      return;
+    }
+    if (!formData.agreeTerms) {
+        setError(t["must-agree-terms"] || "您必須同意服務條款");
+        return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
-    // Simulate API call
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push(`/${locale}`)
-    } catch (error) {
-      console.error("Registration failed:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+      // Step 1: Sign up with Supabase Auth
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          // Pass username to be stored in auth.users.raw_user_meta_data
+          // This is useful if email confirmation is ON, so we have the username later
+          data: {
+            username: formData.username,
+          },
+          // Set this if Email Confirmation is enabled in your Supabase project settings
+          // emailRedirectTo: `${location.origin}/${locale}/auth/callback`,
+        },
+      });
 
-  const handleSocialRegister = async (provider: string) => {
-    setIsLoading(true)
+      if (signUpError) {
+        if (signUpError.message.includes("User already registered")) {
+            setError(t["user-exists"] || "此電子郵件已被註冊");
+        } else if (signUpError.message.includes("Password should be")) {
+             setError(t["password-too-weak"] || "密碼強度不足");
+        }
+        else {
+            setError(signUpError.message);
+        }
+        console.error("Supabase Sign Up Error:", signUpError);
+        setIsLoading(false);
+        return; // Stop execution if Supabase sign up failed
+      }
 
-    // Simulate API call
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push(`/${locale}`)
+      console.log("Supabase SignUp successful:", signUpData);
+
+      // Check if email confirmation is required by Supabase settings
+      // signUpData.user will exist but might not be "active" yet
+      const needsEmailConfirmation = signUpData.user && !signUpData.user.email_confirmed_at && signUpData.session === null;
+
+      if (needsEmailConfirmation) {
+         // If email verification is required
+         console.log("Email confirmation needed.");
+         setSuccessMessage(t["check-email-verification"] || "註冊請求已提交！請檢查您的電子郵件以完成驗證。");
+         setIsLoading(false);
+         // Don't proceed to create profile yet, wait for user to confirm email
+      }
+      else if (signUpData.user) {
+         // If user is created and either auto-confirmed or no confirmation needed
+         console.log("User confirmed or no confirmation needed. Creating profile...");
+
+         // Step 2: Call Server Action to create profile in Prisma
+         const profileInput = {
+            authUserId: signUpData.user.id,
+            email: formData.email,
+            // Use username from form data directly as it's confirmed now
+            username: formData.username,
+         };
+         console.log("Calling createProfileServerAction with:", profileInput);
+         const profileResult = await createProfileServerAction(profileInput);
+         console.log("Server Action result:", profileResult);
+
+         if (profileResult.success) {
+           // Profile created successfully
+           console.log("Prisma profile created/verified.");
+           // Redirect to login page or dashboard after successful registration and profile creation
+           // Redirecting to login is common as the session might not be fully active yet
+           // depending on Supabase flow.
+           router.push(`/${locale}/login?message=registration_success`); // Add query param for success message on login page
+           // router.refresh(); // Refresh might be needed if redirecting to a page showing user state
+         } else {
+           // Failed to create profile in Prisma
+           console.error("Failed to create Prisma profile:", profileResult.error);
+           // This is tricky. The user exists in Supabase Auth but not Prisma.
+           // Inform the user, maybe ask them to contact support or try logging in.
+           setError(profileResult.error || t["profile-creation-error"] || "註冊成功，但建立用戶資料時發生錯誤。請稍後嘗試登入或聯繫客服。");
+         }
+         setIsLoading(false); // Stop loading after server action attempt
+      } else {
+          // Should not happen if signUpError is null, but as a fallback
+           console.error("SignUp returned no error but no user data.");
+           setError(t["unexpected-signup-error"] || "註冊過程中發生未知錯誤。");
+           setIsLoading(false);
+      }
+
     } catch (error) {
-      console.error(`${provider} registration failed:`, error)
-    } finally {
-      setIsLoading(false)
+      console.error("An unexpected error occurred during registration:", error);
+      setError(t["unexpected-error"] || "發生未知錯誤，請稍後再試");
+      setIsLoading(false);
     }
-  }
+    // No finally block needed for isLoading here, handled in specific paths
+  };
+
+  // TODO: Implement handleSocialRegister profile creation logic
+  // Social registration often uses the same signInWithOAuth.
+  // Profile creation for social might need an Auth Hook (DB Trigger/Webhook)
+  // or checking on first login if a profile exists in Prisma and creating it then.
+  const handleSocialRegister = async (provider: 'google' | 'facebook') => {
+    setIsLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+     try {
+        const { error: oauthError } = await supabase.auth.signInWithOAuth({
+            provider: provider,
+            options: {
+            redirectTo: `${location.origin}/${locale}/auth/callback`,
+            // You might pass data here if needed, but username usually comes from provider
+            // data: { intent: 'register' } // Example, might not be necessary
+            },
+        });
+
+        if (oauthError) {
+            setError(oauthError.message);
+            console.error(`${provider} registration failed:`, oauthError);
+            setIsLoading(false);
+        }
+         // Success redirects away, profile creation needs handling elsewhere (e.g., callback or hook)
+    } catch (err) {
+        console.error("OAuth failed:", err);
+        setError(t["social-login-error"] || `無法使用 ${provider} 註冊`);
+        setIsLoading(false);
+    }
+  };
+
 
   return (
     <div className="space-y-6">
+       {/* --- Social Register Buttons --- */}
       <div className="space-y-4">
-        <Button
+         <Button
           type="button"
           variant="outline"
           className="w-full"
@@ -92,29 +202,13 @@ export default function RegisterForm({ locale }: RegisterFormProps) {
           disabled={isLoading}
           onClick={() => handleSocialRegister("google")}
         >
-          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-            <path
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              fill="#4285F4"
-            />
-            <path
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              fill="#34A853"
-            />
-            <path
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              fill="#FBBC05"
-            />
-            <path
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              fill="#EA4335"
-            />
-            <path d="M1 1h22v22H1z" fill="none" />
-          </svg>
+          {/* Google SVG */}
+           <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">...</svg>
           使用 Google 註冊
         </Button>
       </div>
 
+       {/* --- Separator --- */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <Separator className="w-full" />
@@ -124,8 +218,22 @@ export default function RegisterForm({ locale }: RegisterFormProps) {
         </div>
       </div>
 
+       {/* --- Display Error/Success Messages --- */}
+       {error && (
+        <p className="text-center text-sm text-red-600 bg-red-100 border border-red-400 rounded p-2">
+          {error}
+        </p>
+      )}
+      {successMessage && (
+        <p className="text-center text-sm text-green-600 bg-green-100 border border-green-400 rounded p-2">
+          {successMessage}
+        </p>
+      )}
+
+      {/* --- Email/Password Registration Form --- */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
+         {/* Username Input */}
+         <div className="space-y-2">
           <Label htmlFor="username">{t["username"]}</Label>
           <Input
             id="username"
@@ -134,8 +242,10 @@ export default function RegisterForm({ locale }: RegisterFormProps) {
             value={formData.username}
             onChange={handleChange}
             disabled={isLoading}
+            aria-invalid={!!error}
           />
         </div>
+        {/* Email Input */}
         <div className="space-y-2">
           <Label htmlFor="email">{t["email"]}</Label>
           <Input
@@ -147,8 +257,10 @@ export default function RegisterForm({ locale }: RegisterFormProps) {
             value={formData.email}
             onChange={handleChange}
             disabled={isLoading}
+             aria-invalid={!!error}
           />
         </div>
+        {/* Password Input */}
         <div className="space-y-2">
           <Label htmlFor="password">{t["password"]}</Label>
           <Input
@@ -159,8 +271,10 @@ export default function RegisterForm({ locale }: RegisterFormProps) {
             value={formData.password}
             onChange={handleChange}
             disabled={isLoading}
+             aria-invalid={!!error}
           />
         </div>
+         {/* Confirm Password Input */}
         <div className="space-y-2">
           <Label htmlFor="confirmPassword">{t["confirm-password"]}</Label>
           <Input
@@ -171,27 +285,32 @@ export default function RegisterForm({ locale }: RegisterFormProps) {
             value={formData.confirmPassword}
             onChange={handleChange}
             disabled={isLoading}
+             aria-invalid={!!error}
           />
         </div>
+        {/* Terms Checkbox */}
         <div className="flex items-center space-x-2">
           <Checkbox
             id="agreeTerms"
             checked={formData.agreeTerms}
-            onCheckedChange={handleCheckboxChange}
+            onCheckedChange={handleCheckboxChange} // Use the updated handler
             disabled={isLoading}
             required
+            aria-describedby="terms-label"
           />
           <label
+            id="terms-label"
             htmlFor="agreeTerms"
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            {t["agree-terms"]}
+            {t["agree-terms"]} {/* Add link to actual terms if needed */}
           </label>
         </div>
+
         <Button type="submit" className="w-full" disabled={isLoading || !formData.agreeTerms}>
           {isLoading ? "註冊中..." : t["sign-up"]}
         </Button>
       </form>
     </div>
-  )
+  );
 }
