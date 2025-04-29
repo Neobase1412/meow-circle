@@ -1,20 +1,19 @@
 // web/providers/AuthProvider.tsx
-"use client"; // This component wraps children and provides context, must be client-side
+"use client";
 
 import { type ReactNode } from 'react';
-import AuthContext from '@/context/AuthContext'; // Import the context
+import AuthContext from '@/context/AuthContext';
 import type { User as AuthUser } from '@supabase/supabase-js';
-import type { User as ProfileUser } from '@prisma/client';
+// Remove direct Prisma User import
+import type { UserProfileContextType } from '@/lib/userData'; // Import the enhanced type
 
 interface AuthProviderProps {
   children: ReactNode;
-  // Props to receive the server-fetched data
   authUser: AuthUser | null;
-  profile: Pick<ProfileUser, 'id' | 'username' | 'avatarUrl'> | null;
+  profile: UserProfileContextType; // Use the enhanced type for the prop
 }
 
 export function AuthProvider({ children, authUser, profile }: AuthProviderProps) {
-  // The value provided to the context consumers
   const value = {
     authUser,
     profile,

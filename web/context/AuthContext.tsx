@@ -1,22 +1,20 @@
 // web/context/AuthContext.tsx
 import { createContext, useContext, type ReactNode } from 'react';
 import type { User as AuthUser } from '@supabase/supabase-js';
-import type { User as ProfileUser } from '@prisma/client';
+// Remove direct Prisma User import if only used via the context type
+// import type { User as ProfileUser } from '@prisma/client';
+import type { UserProfileContextType } from '@/lib/userData'; // Import the enhanced type
 
-// Define the shape of the context data
+// Define the shape of the context data using the imported type
 interface AuthContextType {
   authUser: AuthUser | null;
-  profile: Pick<ProfileUser, 'id' | 'username' | 'avatarUrl'> | null; // Use the same picked type
-  // You could add loading states or helper functions here if needed later
+  profile: UserProfileContextType; // Use the type from userData.ts
 }
 
-// Create the context with a default value (null or appropriate defaults)
-// Using 'null' initially forces consumers to handle the case where context might not be ready,
-// but since we provide it from the root layout, it should always be available.
-// Using 'undefined' and checking in useAuth is a common pattern too.
+// Create the context with a default value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Custom hook to use the AuthContext, provides better error handling
+// Custom hook (remains the same)
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -25,5 +23,4 @@ export function useAuth() {
   return context;
 }
 
-// Export the context itself if needed elsewhere, though the hook is preferred
 export default AuthContext;

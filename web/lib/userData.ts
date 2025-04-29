@@ -1,39 +1,71 @@
 // web/lib/userData.ts
 import { cookies } from 'next/headers';
-import { createClient } from '@/lib/supabase/server'; // Ensure this path is correct
-import prisma from '@/lib/prisma'; // Ensure this path is correct
+import { createClient } from '@/lib/supabase/server';
+import prisma from '@/lib/prisma';
 import type { User as AuthUser } from '@supabase/supabase-js';
-import type { User as ProfileUser } from '@prisma/client';
+import type { User as PrismaUser, Prisma } from '@prisma/client'; // Import Prisma namespace
 
-// Helper function to fetch user data
+// Define the shape of the profile data we want in the context
+export type UserProfileContextType = Prisma.UserGetPayload<{
+  select: {
+    id: true;
+    username: true;
+    avatarUrl: true;
+    fullName: true; // <-- Add fullName
+    membershipLevel: true; // <-- Add membershipLevel
+    membershipPoints: true; // <-- Add membershipPoints
+    joinedAt: true; // <-- Add joinedAt
+    _count: { // <-- Add counts
+      select: {
+        pets: { where: { isActive: true } }; // Count active pets
+        posts: { where: { isArchived: false } }; // Count non-archived posts
+        collections: true; // Count collections
+        // Add other counts if needed later (e.g., followers, following)
+      };
+    };
+    // Select other fields if needed by other components using the context
+  };
+}> | null; // Profile can be null if not logged in or not found
+
+// Helper function to fetch user data (Auth + Enhanced Profile)
 export async function getUserData(): Promise<{
   authUser: AuthUser | null;
-  profile: Pick<ProfileUser, 'id' | 'username' | 'avatarUrl'> | null;
-}> { // Added explicit return type
+  profile: UserProfileContextType; // Use the new type
+}> {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !authUser) {
-    // console.log("No authenticated user found or error fetching auth user.");
     return { authUser: null, profile: null };
   }
-  // console.log("Authenticated user found:", authUser.id);
 
   try {
-    // console.log(`Fetching Prisma profile for user ID: ${authUser.id}`);
     const profile = await prisma.user.findUnique({
       where: { id: authUser.id },
+      // Select the fields needed for UserProfileCard and potentially others
       select: {
         id: true,
         username: true,
         avatarUrl: true,
+        fullName: true,
+        membershipLevel: true,
+        membershipPoints: true,
+        joinedAt: true,
+        _count: {
+          select: {
+            pets: { where: { isActive: true } },
+            posts: { where: { isArchived: false } },
+            collections: true,
+          },
+        },
       },
     });
-    // console.log("Prisma profile data:", profile);
-    return { authUser, profile };
+    // Ensure profile is returned as null if not found, matching the defined type
+    return { authUser, profile: profile ?? null };
   } catch (prismaError) {
     console.error("Error fetching user profile from Prisma:", prismaError);
+    // Return auth user but null profile on error
     return { authUser, profile: null };
   }
 }
