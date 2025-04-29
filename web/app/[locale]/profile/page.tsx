@@ -101,11 +101,11 @@ export default async function MyProfilePage({ params }: { params: ProfilePagePar
                   <div className="text-sm text-primary/70">貼文</div>
                 </div>
                 <div>
-                  <div className="font-semibold">{currentUserProfile._count.followers}</div>
+                  <div className="font-semibold">{currentUserProfile._count.following}</div>
                   <div className="text-sm text-primary/70">粉絲</div>
                 </div>
                 <div>
-                  <div className="font-semibold">{currentUserProfile._count.following}</div>
+                  <div className="font-semibold">{currentUserProfile._count.followers}</div>
                   <div className="text-sm text-primary/70">追蹤中</div>
                 </div>
               </div>
