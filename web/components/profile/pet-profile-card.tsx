@@ -1,15 +1,22 @@
-import Link from "next/link"
-import Image from "next/image"
-import { type Locale, dictionary } from "@/i18n-config"
-import type { Pet } from "@/types/pet"
+// components/profile/pet-profile-card.tsx
+import Link from "next/link";
+import Image from "next/image";
+import { type Locale } from "@/i18n-config"; // Removed dictionary import as 't' wasn't used
 
+// Define a specific type for the props based on the Prisma query
+// This makes it clear exactly which fields are expected.
 interface PetProfileCardProps {
-  pet: Pet
-  locale: Locale
+  pet: {
+    id: string;
+    name: string;
+    primaryImageUrl: string | null;
+    breed: string | null;
+  };
+  locale: Locale;
 }
 
 export default function PetProfileCard({ pet, locale }: PetProfileCardProps) {
-  const t = dictionary[locale]
+  // const t = dictionary[locale]; // 't' was not used, can be removed
 
   return (
     <Link
@@ -17,16 +24,17 @@ export default function PetProfileCard({ pet, locale }: PetProfileCardProps) {
       className="flex items-center gap-3 hover:bg-secondary/20 p-2 rounded-md transition-colors"
     >
       <Image
-        src={pet.primaryImageUrl || "/placeholder.svg?height=40&width=40&query=cat"}
-        alt={pet.name}
+        // Updated placeholder handling slightly for clarity
+        src={pet.primaryImageUrl || "/placeholder.svg"}
+        alt={pet.name || "Pet"} // Add fallback alt text
         width={40}
         height={40}
-        className="rounded-full"
+        className="rounded-full object-cover bg-muted" // Added object-cover and bg-muted
       />
       <div>
-        <h3 className="font-medium">{pet.name}</h3>
-        <p className="text-xs text-primary/70">{pet.breed}</p>
+        <h3 className="font-medium">{pet.name || "Unnamed Pet"}</h3>
+        <p className="text-xs text-primary/70">{pet.breed || "Unknown Breed"}</p>
       </div>
     </Link>
-  )
+  );
 }

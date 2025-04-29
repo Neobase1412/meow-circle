@@ -189,7 +189,7 @@ export default function MainNav({ locale }: MainNavProps) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                   <Link href={`/${locale}/profile/${profile?.username || authUser.id}`}>
+                   <Link href={`/${locale}/profile`}>
                      <UserIcon className="mr-2 h-4 w-4" />
                      <span>個人資料</span>
                    </Link>
