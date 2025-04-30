@@ -1,106 +1,26 @@
-import Link from "next/link"
-import Image from "next/image"
-import { type Locale, dictionary } from "@/i18n-config"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { topics } from "@/data/posts"
-import TopicCard from "@/components/topic-card"
-import DiscussionCard from "@/components/discussion/discussion-card"
+// app/[locale]/discussion/page.tsx
+import Link from "next/link";
+import Image from "next/image";
+import { type Locale, dictionary } from "@/i18n-config";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import TopicCard from "@/components/topic-card";
+import DiscussionCard from "@/components/discussion/discussion-card"; // Assuming this component exists and is updated
+import CreateDiscussionCard from "@/components/create-discussion-card"; // Import the new component
+import { getDiscussionPageData } from "@/lib/discussionData"; // Import updated data fetcher
 
-export default async function DiscussionPage({ params }: { params: Promise<{ locale: Locale }> }) {
-  const { locale } = await params
-  const t = dictionary[locale]
+export default async function DiscussionPage({ params }: { params: { locale: Locale } }) {
+  const locale = params.locale;
+  const t = dictionary[locale];
 
-  // Mock discussions
-  const discussions = [
-    {
-      id: 1,
-      title: "新手養貓需要準備哪些物品？",
-      content: "即將領養一隻小貓，想請教各位有經驗的貓奴，需要準備哪些必備物品？",
-      author: {
-        id: "5",
-        name: "新手貓奴",
-        avatarUrl: "/images/avatars/user4.jpg",
-      },
-      category: "新手養貓",
-      commentCount: 15,
-      viewCount: 120,
-      createdAt: new Date("2023-06-18T10:30:00"),
-    },
-    {
-      id: 2,
-      title: "貓咪不愛喝水怎麼辦？",
-      content: "我家貓咪很少喝水，擔心會有泌尿系統問題，有什麼方法可以增加貓咪的飲水量？",
-      author: {
-        id: "2",
-        name: "喵星人愛好者",
-        avatarUrl: "/images/avatars/user1.jpg",
-      },
-      category: "健康照護",
-      commentCount: 23,
-      viewCount: 210,
-      createdAt: new Date("2023-06-17T15:45:00"),
-    },
-    {
-      id: 3,
-      title: "推薦好用的貓砂品牌",
-      content: "想換一款除臭效果好、不會有太多粉塵的貓砂，有推薦的品牌嗎？",
-      author: {
-        id: "3",
-        name: "貓咪媽媽",
-        avatarUrl: "/images/avatars/user2.jpg",
-      },
-      category: "用品推薦",
-      commentCount: 32,
-      viewCount: 280,
-      createdAt: new Date("2023-06-16T09:15:00"),
-    },
-    {
-      id: 4,
-      title: "貓咪行為問題：半夜狂奔怎麼辦？",
-      content: "我家貓咪每天半夜都會突然狂奔，吵得睡不著覺，有什麼方法可以改善嗎？",
-      author: {
-        id: "2",
-        name: "喵星人愛好者",
-        avatarUrl: "/images/avatars/user1.jpg",
-      },
-      category: "行為訓練",
-      commentCount: 18,
-      viewCount: 150,
-      createdAt: new Date("2023-06-15T20:30:00"),
-    },
-    {
-      id: 5,
-      title: "貓咪挑食怎麼辦？",
-      content: "我家貓咪最近變得很挑食，買了很多種飼料都不愛吃，該怎麼辦？",
-      author: {
-        id: "3",
-        name: "貓咪媽媽",
-        avatarUrl: "/images/avatars/user2.jpg",
-      },
-      category: "飲食營養",
-      commentCount: 27,
-      viewCount: 230,
-      createdAt: new Date("2023-06-14T14:20:00"),
-    },
-  ]
-
-  // Get popular topics
-  const popularTopics = topics.sort((a, b) => b.followerCount - a.followerCount).slice(0, 5)
-
-  // Mock categories
-  const categories = [
-    { id: 1, name: "新手養貓", count: 120 },
-    { id: 2, name: "健康照護", count: 95 },
-    { id: 3, name: "飲食營養", count: 87 },
-    { id: 4, name: "行為訓練", count: 76 },
-    { id: 5, name: "用品推薦", count: 68 },
-    { id: 6, name: "貓咪故事", count: 54 },
-    { id: 7, name: "醫療諮詢", count: 43 },
-    { id: 8, name: "貓咪攝影", count: 38 },
-  ]
+  // Fetch real discussion data
+  const {
+    latestDiscussions,
+    popularTopics,
+    filterCategories
+  } = await getDiscussionPageData();
 
   return (
     <div className="container-custom py-6">
@@ -112,6 +32,7 @@ export default async function DiscussionPage({ params }: { params: Promise<{ loc
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Search and Categories Card */}
           <Card>
             <CardContent className="p-4">
               <div className="flex gap-2">
@@ -119,30 +40,30 @@ export default async function DiscussionPage({ params }: { params: Promise<{ loc
                 <Button>搜尋</Button>
               </div>
               <div className="flex flex-wrap gap-2 mt-4">
-                {categories.slice(0, 6).map((category) => (
+                {filterCategories.map((category) => (
                   <Link
+                    // Link using tag name
                     key={category.id}
-                    href={`/${locale}/discussion/categories/${category.id}`}
-                    className="inline-flex items-center px-3 py-1 rounded-full bg-secondary text-primary text-sm"
+                    href={`/${locale}/community/tags/${encodeURIComponent(category.name)}`} // Link to tag page
+                    className="inline-flex items-center px-3 py-1 rounded-full bg-secondary text-primary text-sm hover:bg-secondary/80"
                   >
                     {category.name}
-                    <span className="ml-1 text-xs text-primary/70">{category.count}</span>
+                    {/* Display tag count */}
+                    <span className="ml-1.5 text-xs text-primary/70">{category.count}</span>
                   </Link>
                 ))}
+                {/* Consider a link to a page showing all tags/categories */}
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/${locale}/discussion/categories`}>更多</Link>
+                  <Link href={`/${locale}/community/tags`}>更多標籤</Link>
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">討論列表</h2>
-            <Button asChild>
-              <Link href={`/${locale}/discussion/new`}>發起討論</Link>
-            </Button>
-          </div>
+          {/* Discussion List Header */}
+          <CreateDiscussionCard locale={locale} />
 
+          {/* Discussion Tabs */}
           <Tabs defaultValue="latest">
             <TabsList className="w-full bg-background border border-border">
               <TabsTrigger value="latest" className="flex-1">
@@ -155,74 +76,81 @@ export default async function DiscussionPage({ params }: { params: Promise<{ loc
                 待回答
               </TabsTrigger>
             </TabsList>
+
+            {/* Latest Discussions Tab */}
             <TabsContent value="latest" className="space-y-4 mt-6">
-              {discussions.map((discussion) => (
-                <DiscussionCard key={discussion.id} discussion={discussion} locale={locale} />
-              ))}
+              {latestDiscussions.length > 0 ? (
+                 latestDiscussions.map((discussion) => (
+                   // Assuming DiscussionCard accepts a Post-like structure
+                   // Ensure DiscussionCard props match PostForCommunityFeed
+                   <DiscussionCard key={discussion.id} discussion={discussion as any} locale={locale} />
+                 ))
+              ) : (
+                 <div className="text-center py-12">
+                    <p className="text-primary/70">目前沒有討論，快來發起一個吧！</p>
+                 </div>
+              )}
+               {/* TODO: Add pagination */}
             </TabsContent>
+
+             {/* Hot Discussions Tab (Placeholder) */}
             <TabsContent value="hot" className="space-y-4 mt-6">
-              {/* Placeholder for hot discussions */}
               <div className="text-center py-12">
                 <p className="text-primary/70">熱門討論功能即將推出，敬請期待！</p>
               </div>
             </TabsContent>
+
+            {/* Unanswered Discussions Tab (Placeholder) */}
             <TabsContent value="unanswered" className="space-y-4 mt-6">
-              {/* Placeholder for unanswered discussions */}
               <div className="text-center py-12">
                 <p className="text-primary/70">待回答功能即將推出，敬請期待！</p>
               </div>
             </TabsContent>
           </Tabs>
 
-          <div className="flex justify-center">
+           {/* TODO: Replace with actual pagination controls */}
+          {/* <div className="flex justify-center">
             <Button variant="outline">載入更多</Button>
-          </div>
+          </div> */}
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="text-lg font-semibold mb-3">熱門話題</h3>
-              <div className="space-y-4">
-                {popularTopics.map((topic) => (
-                  <TopicCard key={topic.id} topic={topic} locale={locale} />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Popular Topics Card */}
+          {popularTopics.length > 0 && (
+            <Card>
+                <CardContent className="p-4">
+                <h3 className="text-lg font-semibold mb-3">熱門話題</h3>
+                <div className="space-y-4">
+                    {/* Ensure TopicCard props match TopicForCommunitySidebar */}
+                    {popularTopics.map((topic) => (
+                    <TopicCard key={topic.id} topic={topic as any} locale={locale} />
+                    ))}
+                </div>
+                </CardContent>
+            </Card>
+          )}
 
+          {/* Discussion Guide Card (Static) */}
           <Card>
             <CardContent className="p-4">
               <h3 className="text-lg font-semibold mb-3">討論指南</h3>
-              <ul className="space-y-2 text-primary/80">
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                  <span>清楚描述您的問題</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                  <span>提供相關背景資訊</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                  <span>使用適當的標籤分類</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                  <span>尊重他人的意見和建議</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                  <span>標記有幫助的回答</span>
-                </li>
+               {/* Keep static content */}
+              <ul className="space-y-2 text-sm text-primary/80">
+                 <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0"></div><span>清楚描述您的問題</span></li>
+                 <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0"></div><span>提供相關背景資訊</span></li>
+                 <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0"></div><span>使用適當的標籤分類</span></li>
+                 <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0"></div><span>尊重他人的意見和建議</span></li>
+                 <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0"></div><span>標記有幫助的回答</span></li>
               </ul>
             </CardContent>
           </Card>
 
+          {/* Experts Online Card (Static/Placeholder) */}
           <Card>
             <CardContent className="p-4">
               <h3 className="text-lg font-semibold mb-3">專家在線</h3>
+              {/* Keep static content or fetch featured experts later */}
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <Image
@@ -269,5 +197,5 @@ export default async function DiscussionPage({ params }: { params: Promise<{ loc
         </div>
       </div>
     </div>
-  )
+  );
 }
