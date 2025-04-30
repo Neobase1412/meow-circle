@@ -14,12 +14,12 @@ export type CurrentUserProfileData = Prisma.UserGetPayload<{
         posts: { where: { isArchived: false } }; // Count owner's active posts
         followers: true;
         following: true;
+        collections: true;
       };
     };
     pets: {
       where: { isActive: true };
       orderBy: { createdAt: 'asc' };
-      take: 5;
       select: { id: true; name: true; primaryImageUrl: true; breed: true };
     };
     posts: {
@@ -60,13 +60,13 @@ export async function getCurrentUserProfileData(): Promise<CurrentUserProfileDat
             posts: { where: { isArchived: false } }, // Count owner's active posts
             followers: true,
             following: true,
+            collections: true,
           },
         },
         // Include some pets for the sidebar
         pets: {
           where: { isActive: true },
           orderBy: { createdAt: 'asc' },
-          take: 5, // Limit initial pet display
           select: { id: true, name: true, primaryImageUrl: true, breed: true }
         },
         // Include some posts for the main feed
