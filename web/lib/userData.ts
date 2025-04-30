@@ -12,6 +12,7 @@ export type UserProfileContextType = Prisma.UserGetPayload<{
     username: true;
     avatarUrl: true;
     fullName: true; // <-- Add fullName
+    bio: true;
     membershipLevel: true; // <-- Add membershipLevel
     membershipPoints: true; // <-- Add membershipPoints
     joinedAt: true; // <-- Add joinedAt
@@ -49,6 +50,7 @@ export async function getUserData(): Promise<{
         username: true,
         avatarUrl: true,
         fullName: true,
+        bio: true,
         membershipLevel: true,
         membershipPoints: true,
         joinedAt: true,

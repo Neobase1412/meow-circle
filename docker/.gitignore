@@ -135,3 +135,6 @@ gcloud.json
 # apps/docs/public/*.xml
 
 data/
+
+# MinIO
+volumes/storage/
