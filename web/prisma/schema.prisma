@@ -46,6 +46,7 @@ model User {
 
   // 內容關聯
   posts       Post[]
+  discussions Discussion[] @relation("UserDiscussions")
   comments    Comment[]
   likes       Like[]
   collections Collection[]
@@ -407,24 +408,33 @@ enum MediaType {
 }
 
 model Comment {
-  id       String  @id @default(cuid())
-  post     Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId   String
-  author   User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  authorId String
-  content  String
-  mediaUrl String?
+  id              String        @id @default(cuid())
 
-  // 回覆層級
-  parentId String? // 若為回覆評論，存儲父評論ID
+  // Link to EITHER Post OR Discussion
+  post            Post?         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId          String?       // Make postId optional
+  discussion      Discussion?   @relation("DiscussionComments", fields: [discussionId], references: [id], onDelete: Cascade)
+  discussionId    String?       // <-- ADD discussionId (optional)
 
-  likes     Like[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  author          User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId        String
+  content         String
+  mediaUrl        String?
+
+  parentId        String?
+  likes           Like[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@index([postId])
+  @@index([discussionId]) // <-- ADD index for discussionId
   @@index([authorId])
   @@index([parentId])
+
+  // Optional: Add a constraint to ensure only one parent type is set (database-level check)
+  // This syntax might vary slightly based on DB provider (PostgreSQL example)
+  // @@db.Raw("CONSTRAINT comment_parent_check CHECK (num_nonnulls(postId, discussionId) = 1)")
+  // Or handle this check in your application logic when creating comments.
 }
 
 model Like {
@@ -460,6 +470,7 @@ model Tag {
   id        String   @id @default(cuid())
   name      String   @unique
   posts     Post[]
+  discussions Discussion[] @relation("DiscussionTags")
   count     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -480,6 +491,7 @@ model Topic {
 
   // 文章關聯
   posts Post[] @relation("TopicPosts")
+  discussions Discussion[] @relation("TopicDiscussions")
 
   // 統計
   followerCount Int @default(0)
@@ -1288,4 +1300,40 @@ enum TokenType {
   REMEMBER_ME // 記住我
   DEVICE // 裝置令牌
   API // API令牌
+}
+
+
+model Discussion {
+  id              String        @id @default(cuid())
+  title           String
+  content         String?       // Making content optional, title is the main focus
+  author          User          @relation("UserDiscussions", fields: [authorId], references: [id], onDelete: Cascade)
+  authorId        String
+
+  // Optional link to a Topic
+  topic           Topic?        @relation("TopicDiscussions", fields: [topicId], references: [id], onDelete: SetNull)
+  topicId         String?
+
+  // Optional link to Tags (Many-to-Many)
+  tags            Tag[]         @relation("DiscussionTags") // New relation name
+
+  status          DiscussionStatus @default(OPEN)
+  viewCount       Int           @default(0)
+  // We can get comment count via relation _count
+
+  comments        Comment[]     @relation("DiscussionComments") // New relation for discussion comments
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([authorId])
+  @@index([topicId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum DiscussionStatus {
+  OPEN      // Actively seeking answers/discussion
+  ANSWERED  // An answer has been marked (if implementing best answer)
+  CLOSED    // No longer active
 }
