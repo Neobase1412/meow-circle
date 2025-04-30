@@ -1,8 +1,12 @@
 // web/actions/authActions.ts
 'use server';
 
+import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server'; 
+
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
+import { revalidatePath } from 'next/cache';
 // Note: We don't strictly need server-side Supabase client here if we trust
 // the authUserId passed immediately after signUp, but it could be added for extra validation.
 
@@ -86,4 +90,98 @@ export async function createProfileServerAction(input: {
     // Log the detailed error on the server, return a generic message to the client
     return { success: false, error: '無法建立用戶資料，請稍後再試' };
   }
+}
+
+// --- Action to Update User Email ---
+const UpdateEmailSchema = z.object({
+  newEmail: z.string().email("請輸入有效的電子郵件地址"),
+});
+
+export async function updateUserEmailAction(
+  formData: unknown
+): Promise<{ success: boolean; error?: string; message?: string }> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore); // Use server client helper
+
+  // 1. Get current user session (to ensure user is logged in)
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || !session?.user) {
+    return { success: false, error: '使用者未登入或驗證失敗' };
+  }
+
+  // 2. Validate input
+  const validationResult = UpdateEmailSchema.safeParse(formData);
+  if (!validationResult.success) {
+      return { success: false, error: validationResult.error.errors[0]?.message || '無效的電子郵件格式' };
+  }
+  const { newEmail } = validationResult.data;
+
+   // 3. Check if email is actually different
+   if (newEmail === session.user.email) {
+        return { success: false, error: '新電子郵件與目前的相同' };
+   }
+
+  // 4. Call Supabase Auth to update email
+  // This will typically send confirmation emails to both old and new addresses
+  // if "Secure email change" is enabled in Supabase project settings.
+  const { data, error: updateError } = await supabase.auth.updateUser({
+    email: newEmail
+  });
+
+  if (updateError) {
+    console.error("Supabase email update error:", updateError);
+    // Handle specific Supabase errors if needed (e.g., email rate limit)
+    return { success: false, error: updateError.message || '無法更新電子郵件，請稍後再試' };
+  }
+
+  // Revalidation might not be strictly necessary immediately if email change requires confirmation,
+  // but doesn't hurt. The UI should show a pending state.
+  revalidatePath('/settings');
+
+  // Provide feedback based on Supabase settings (confirmation needed?)
+  // The actual confirmation status isn't directly available here easily,
+  // so provide a general message.
+  return { success: true, message: '電子郵件更新請求已送出。請檢查您的新舊信箱以確認變更。' };
+}
+
+
+// --- Action to Update User Password ---
+const UpdatePasswordSchema = z.object({
+    newPassword: z.string().min(6, "新密碼至少需要 6 個字元"), // Adjust min length as needed
+    // currentPassword: z.string().optional(), // Not needed for default Supabase update
+});
+
+export async function updateUserPasswordAction(
+    formData: unknown
+): Promise<{ success: boolean; error?: string }> {
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
+
+    // 1. Get current user (ensure logged in)
+     const { data: { user }, error: authError } = await supabase.auth.getUser();
+     if (authError || !user) {
+        return { success: false, error: '使用者未登入或驗證失敗' };
+     }
+
+    // 2. Validate input
+    const validationResult = UpdatePasswordSchema.safeParse(formData);
+    if (!validationResult.success) {
+        return { success: false, error: validationResult.error.errors[0]?.message || '無效的密碼格式' };
+    }
+    const { newPassword } = validationResult.data;
+
+    // 3. Call Supabase Auth to update password
+    const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+    });
+
+    if (updateError) {
+        console.error("Supabase password update error:", updateError);
+        return { success: false, error: updateError.message || '無法更新密碼，請稍後再試' };
+    }
+
+    // No path revalidation needed as data didn't change, but could clear session potentially?
+    // For security, Supabase might invalidate other sessions after password change.
+
+    return { success: true };
 }
