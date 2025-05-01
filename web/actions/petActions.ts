@@ -7,6 +7,7 @@ import prisma from '@/lib/prisma';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 import { PetGender } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 // Expanded schema for creating a pet
 const CreatePetSchema = z.object({

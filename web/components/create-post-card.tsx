@@ -1,8 +1,9 @@
 // web/components/create-post-card.tsx
 "use client";
 
-import React, { useState, useTransition, useRef, useEffect } from "react"; // Added useEffect
+import React, { useState, useTransition, useRef, useEffect } from "react";
 import Image from "next/image";
+// Added Tooltip components
 import { ImageIcon, Smile, MapPin, Tag, Lock, Loader2, Globe, Users, ImagePlus, X } from "lucide-react";
 import { type Locale, dictionary } from "@/i18n-config";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { uploadFilesToSupabase } from "@/lib/storageUtils"; // Import the utility function
+import { uploadFilesToSupabase } from "@/lib/storageUtils";
+// Import Tooltip components
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 
 interface CreatePostCardProps {
   locale: Locale;
@@ -28,8 +37,8 @@ export default function CreatePostCard({ locale }: CreatePostCardProps) {
   const t = dictionary[locale];
   const { authUser, profile } = useAuth();
   const { toast } = useToast();
-  const [isPending, startTransition] = useTransition(); // For server action
-  const [isUploading, setIsUploading] = useState(false); // For file uploads
+  const [isPending, startTransition] = useTransition();
+  const [isUploading, setIsUploading] = useState(false);
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [visibility, setVisibility] = useState<Visibility>(Visibility.PUBLIC);
@@ -189,18 +198,18 @@ export default function CreatePostCard({ locale }: CreatePostCardProps) {
    const VisibilityInfo = getVisibilityInfo(); // <<< Correct placement
 
    // Combined loading state for disabling UI elements
-   const isLoading = isPending || isUploading;
+  const isLoading = isPending || isUploading;
 
-  // --- The Return Statement ---
   return (
-    <Card>
-      <CardContent className="p-4">
+    <TooltipProvider delayDuration={100}>
+      <Card>
+        <CardContent className="p-4">
         {error && (
            <p className="mb-2 text-center text-sm text-red-600 bg-red-100 border border-red-300 p-2 rounded">{error}</p>
         )}
-        <form onSubmit={handleSubmit}>
-           {/* Textarea and Avatar */}
-          <div className="flex gap-3">
+          <form onSubmit={handleSubmit}>
+             {/* Textarea and Avatar */}
+             <div className="flex gap-3">
             <Image
               src={profile.avatarUrl || "/placeholder-user.jpg"}
               alt={profile.username || "User"}
@@ -215,7 +224,7 @@ export default function CreatePostCard({ locale }: CreatePostCardProps) {
             />
           </div>
 
-          {/* Image Previews */}
+            {/* Image Previews */}
           {imagePreviews.length > 0 && (
              <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                 {imagePreviews.map((previewUrl, index) => (
@@ -231,41 +240,78 @@ export default function CreatePostCard({ locale }: CreatePostCardProps) {
             </div>
           )}
 
-          {/* Action Buttons and Submit */}
-          <div className="mt-3 flex justify-between items-center flex-wrap gap-y-2">
-            <div className="flex gap-1 flex-wrap">
-              {/* Image Upload Button */}
-              <Button type="button" variant="ghost" size="icon" className="text-primary/70"
-                onClick={triggerFileInput} disabled={isLoading || selectedFiles.length >= 5} aria-label="Add image" title="新增圖片">
-                <ImagePlus className="h-5 w-5" />
-                <input type="file" ref={fileInputRef} onChange={handleFileChange}
-                    accept="image/png, image/jpeg, image/webp, image/gif" style={{ display: 'none' }} multiple disabled={isLoading} />
+            {/* Action Buttons and Submit */}
+            <div className="mt-3 flex justify-between items-center flex-wrap gap-y-2">
+              <div className="flex gap-1 flex-wrap">
+                {/* Image Upload Button (Functional) */}
+                <Tooltip>
+                   <TooltipTrigger asChild>
+                      <Button type="button" variant="ghost" size="icon" className="text-primary/70"
+                         onClick={triggerFileInput} disabled={isLoading || selectedFiles.length >= 5} aria-label="Add image">
+                         <ImagePlus className="h-5 w-5" />
+                         <input type="file" ref={fileInputRef} onChange={handleFileChange}
+                           accept="image/png, image/jpeg, image/webp, image/gif" style={{ display: 'none' }} multiple disabled={isLoading} />
+                      </Button>
+                   </TooltipTrigger>
+                   <TooltipContent><p>新增圖片</p></TooltipContent>
+                </Tooltip>
+
+                {/* --- Placeholder Buttons with Tooltips --- */}
+                <Tooltip>
+                   <TooltipTrigger asChild>
+                       {/* Add disabled state visually and functionally */}
+                      <Button type="button" variant="ghost" size="icon" className="text-primary/70 opacity-50 cursor-not-allowed" disabled title="Add emoji (coming soon)">
+                         <Smile className="h-5 w-5" />
+                      </Button>
+                   </TooltipTrigger>
+                   <TooltipContent><p>新增表情 (開發中)</p></TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                   <TooltipTrigger asChild>
+                      <Button type="button" variant="ghost" size="icon" className="text-primary/70 opacity-50 cursor-not-allowed" disabled title="Add location (coming soon)">
+                         <MapPin className="h-5 w-5" />
+                      </Button>
+                   </TooltipTrigger>
+                   <TooltipContent><p>新增地點 (開發中)</p></TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                   <TooltipTrigger asChild>
+                      <Button type="button" variant="ghost" size="icon" className="text-primary/70 opacity-50 cursor-not-allowed" disabled title="Add tags (coming soon)">
+                         <Tag className="h-5 w-5" />
+                      </Button>
+                   </TooltipTrigger>
+                   <TooltipContent><p>新增標籤 (開發中)</p></TooltipContent>
+                </Tooltip>
+                 {/* --- End Placeholder Buttons --- */}
+
+                {/* Visibility Selector (Functional) */}
+                <Tooltip>
+                   <TooltipTrigger asChild>
+                      <DropdownMenu>
+                         <DropdownMenuTrigger asChild>
+                           <Button type="button" variant="ghost" size="icon" className="text-primary/70" disabled={isLoading}>
+                               <VisibilityInfo.icon className="h-5 w-5" />
+                           </Button>
+                         </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start">
+                           <DropdownMenuItem onClick={() => setVisibility(Visibility.PUBLIC)}><Globe className="mr-2 h-4 w-4" /> 公開</DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => setVisibility(Visibility.FOLLOWERS)}><Users className="mr-2 h-4 w-4" /> 追蹤者</DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => setVisibility(Visibility.PRIVATE)}><Lock className="mr-2 h-4 w-4" /> 僅自己</DropdownMenuItem>
+                          </DropdownMenuContent>
+                       </DropdownMenu>
+                   </TooltipTrigger>
+                   <TooltipContent><p>可見度: {VisibilityInfo.text}</p></TooltipContent>
+                </Tooltip>
+
+              </div>
+              {/* Submit Button */}
+              <Button type="submit" disabled={(!content.trim() && selectedFiles.length === 0) || isLoading} size="sm">
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "發布"}
               </Button>
-              {/* Other Placeholders */}
-               <Button type="button" variant="ghost" size="icon" className="text-primary/70" disabled={isLoading} title="Add emoji"><Smile className="h-5 w-5" /></Button>
-               <Button type="button" variant="ghost" size="icon" className="text-primary/70" disabled={isLoading} title="Add location"><MapPin className="h-5 w-5" /></Button>
-               <Button type="button" variant="ghost" size="icon" className="text-primary/70" disabled={isLoading} title="Add tags"><Tag className="h-5 w-5" /></Button>
-              {/* Visibility Selector */}
-               <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button type="button" variant="ghost" size="icon" className="text-primary/70" disabled={isLoading} title={`Post visibility: ${VisibilityInfo.text}`}>
-                        <VisibilityInfo.icon className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                   <DropdownMenuContent align="start">
-                    <DropdownMenuItem onClick={() => setVisibility(Visibility.PUBLIC)}><Globe className="mr-2 h-4 w-4" /> 公開</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setVisibility(Visibility.FOLLOWERS)}><Users className="mr-2 h-4 w-4" /> 追蹤者</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setVisibility(Visibility.PRIVATE)}><Lock className="mr-2 h-4 w-4" /> 僅自己</DropdownMenuItem>
-                   </DropdownMenuContent>
-                </DropdownMenu>
             </div>
-            {/* Submit Button */}
-            <Button type="submit" disabled={(!content.trim() && selectedFiles.length === 0) || isLoading} size="sm">
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "發布"}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+          </form>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 }

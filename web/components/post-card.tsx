@@ -1,47 +1,110 @@
 // web/components/post-card.tsx
 "use client";
 
-import { useState } from "react";
+import React, { useState, useTransition, useEffect } from "react"; // Added useEffect
 import Link from "next/link";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { zhTW, enUS } from "date-fns/locale";
-import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal } from "lucide-react";
+import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Loader2 } from "lucide-react"; // Added Loader2
 import { type Locale, dictionary } from "@/i18n-config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import type { PostForCommunityFeed } from "@/lib/communityData"; // Import the correct type
+import { useAuth } from "@/context/AuthContext"; // For checking login status client-side
+import { toggleLikeAction, toggleSaveAction } from "@/actions/postActions"; // Import actions
+import { useToast } from "@/hooks/use-toast";
+// Import the updated type which includes like/save status
+import type { PostForCommunityFeed } from "@/lib/communityData"; // Adjust import path if needed
 
 interface PostCardProps {
-  post: PostForCommunityFeed; // Use the Prisma-derived type
+  post: PostForCommunityFeed; // Use the updated type
   locale: Locale;
-  // TODO: Add props for initial like/save status for the current user
-  // initialIsLiked?: boolean;
-  // initialIsSaved?: boolean;
 }
 
-export default function PostCard({ post, locale /*, initialIsLiked = false, initialIsSaved = false */ }: PostCardProps) {
+export default function PostCard({ post, locale }: PostCardProps) {
   const t = dictionary[locale];
-  // Note: Like/Save state is currently local ONLY. Needs server actions.
-  const [isLiked, setIsLiked] = useState(false); // Replace with prop/action later
-  const [isSaved, setIsSaved] = useState(false); // Replace with prop/action later
+  const { authUser } = useAuth(); // Get viewer's auth status
+  const { toast } = useToast();
+  const [isLikePending, startLikeTransition] = useTransition();
+  const [isSavePending, startSaveTransition] = useTransition();
 
-  // Use author data directly from the post prop
+  // Initialize state from props
+  const [isLiked, setIsLiked] = useState(post.currentUserLiked);
+  const [isSaved, setIsSaved] = useState(post.currentUserSaved);
+  // Use fetched count as base, adjust optimistically
+  const [likeCount, setLikeCount] = useState(post._count?.likes ?? 0);
+  // Comment count doesn't change optimistically here
+  const commentCount = post._count?.comments ?? 0;
+
+  // Sync state if props change (e.g., after revalidation from another action)
+  useEffect(() => {
+      setIsLiked(post.currentUserLiked);
+      setIsSaved(post.currentUserSaved);
+      setLikeCount(post._count?.likes ?? 0);
+  }, [post.currentUserLiked, post.currentUserSaved, post._count?.likes]);
+
+
   const author = post.author;
-
-  // Use counts directly from the post prop
-  const likeCount = post._count?.likes ?? 0; // Use fetched count as base
-  const commentCount = post._count?.comments ?? 0; // Use fetched count
-
-  // Format date based on locale
   const dateLocale = locale === "zh-TW" ? zhTW : enUS;
-  const formattedDate = post.createdAt ? formatDistanceToNow(new Date(post.createdAt), { // Ensure date is Date object
-    addSuffix: true,
-    locale: dateLocale,
-  }) : '';
-
-  // Handle media display (Ensure mediaUrls is treated as potentially null/undefined)
+  const formattedDate = post.createdAt ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: dateLocale }) : '';
   const mediaUrls = post.mediaUrls || [];
+
+  const handleLikeToggle = () => {
+    if (!authUser || isLikePending) return; // Check login and pending state
+
+    startLikeTransition(async () => {
+        // Optimistic UI update
+        const previousLikedState = isLiked;
+        const previousLikeCount = likeCount;
+        setIsLiked(!previousLikedState);
+        setLikeCount(prev => previousLikedState ? Math.max(0, prev - 1) : prev + 1);
+
+        const result = await toggleLikeAction(post.id);
+
+        if (!result.success) {
+            // Revert optimistic update on failure
+            setIsLiked(previousLikedState);
+            setLikeCount(previousLikeCount);
+            toast({ title: "錯誤", description: result.error || "無法按讚/取消讚", variant: "destructive" });
+        }
+         // No success toast needed usually, UI updates optimistically
+         // Revalidation from server action will confirm state eventually
+    });
+  };
+
+  const handleSaveToggle = () => {
+      if (!authUser || isSavePending) return;
+
+      startSaveTransition(async () => {
+          const previousSavedState = isSaved;
+          setIsSaved(!previousSavedState); // Optimistic update
+
+           const result = await toggleSaveAction(post.id);
+
+           if (!result.success) {
+                // Revert optimistic update
+                setIsSaved(previousSavedState);
+                toast({ title: "錯誤", description: result.error || "無法收藏/取消收藏", variant: "destructive" });
+           } else {
+               // Optionally show toast for successful save/unsave
+               toast({ description: result.newState ? "已收藏！" : "已取消收藏。" });
+           }
+      });
+  };
+
+  const handleShare = () => {
+      // Basic copy link functionality
+      const postUrl = `${window.location.origin}/${locale}/post/${post.id}`; // Assuming /post/[id] route exists
+      navigator.clipboard.writeText(postUrl)
+        .then(() => {
+            toast({ description: "連結已複製！" });
+        })
+        .catch(err => {
+            console.error("Failed to copy link:", err);
+            toast({ title: "錯誤", description: "無法複製連結", variant: "destructive"});
+        });
+  };
+
   const renderMedia = () => {
     if (mediaUrls.length === 0) {
       return null;
@@ -128,37 +191,38 @@ export default function PostCard({ post, locale /*, initialIsLiked = false, init
             </div>
              {/* Action Buttons - Use real counts */}
             <div className="mt-4 flex justify-between items-center">
-              {/* TODO: Implement Like Action */}
+              {/* Like Button */}
               <Button
-                variant="ghost"
-                size="sm"
-                className="text-primary/70 hover:text-primary hover:bg-destructive/10" // Like hover red
-                onClick={() => setIsLiked(!isLiked)}
+                variant="ghost" size="sm"
+                className={`text-primary/70 hover:text-red-600 ${isLiked ? "text-red-500" : ""}`}
+                onClick={handleLikeToggle}
+                disabled={!authUser || isLikePending} // Disable if not logged in or pending
                 aria-pressed={isLiked}
               >
-                <Heart className={`h-4 w-4 mr-1 ${isLiked ? "fill-red-500 text-red-500" : ""}`} /> {/* Use red for like */}
-                <span>{likeCount + (isLiked && !(post._count?.likes??0 >= likeCount) ? 1 : 0)}</span> {/* Basic optimistic update display */}
+                 {isLikePending ? <Loader2 className="h-4 w-4 mr-1 animate-spin"/> : <Heart className={`h-4 w-4 mr-1 ${isLiked ? "fill-red-500" : ""}`} />}
+                <span>{likeCount}</span>
               </Button>
-               {/* TODO: Link/Open Comments */}
-              <Button variant="ghost" size="sm" className="text-primary/70 hover:text-primary hover:bg-secondary/50">
+              {/* Comment Button (placeholder action) */}
+              <Button variant="ghost" size="sm" className="text-primary/70 hover:text-primary hover:bg-secondary/50" title="留言 (開發中)">
                 <MessageCircle className="h-4 w-4 mr-1" />
                 <span>{commentCount}</span>
               </Button>
-               {/* TODO: Implement Share Action */}
-              <Button variant="ghost" size="sm" className="text-primary/70 hover:text-primary hover:bg-secondary/50">
+               {/* Share Button */}
+              <Button variant="ghost" size="sm" className="text-primary/70 hover:text-primary hover:bg-secondary/50" onClick={handleShare}>
                 <Share2 className="h-4 w-4 mr-1" />
                 <span>{t["share"]}</span>
               </Button>
-               {/* TODO: Implement Save/Bookmark Action */}
+               {/* Save/Bookmark Button */}
               <Button
-                variant="ghost"
-                size="sm"
-                className="text-primary/70 hover:text-primary hover:bg-secondary/50"
-                onClick={() => setIsSaved(!isSaved)}
+                variant="ghost" size="sm"
+                className={`text-primary/70 hover:text-primary hover:bg-secondary/50 ${isSaved ? "text-primary" : ""}`}
+                onClick={handleSaveToggle}
+                disabled={!authUser || isSavePending}
                 aria-pressed={isSaved}
               >
-                <Bookmark className={`h-4 w-4 mr-1 ${isSaved ? "fill-primary text-primary" : ""}`} />
-                {/* <span>{isSaved ? "已收藏" : "收藏"}</span> */} {/* Icon only might be cleaner */}
+                 {isSavePending ? <Loader2 className="h-4 w-4 mr-1 animate-spin"/> : <Bookmark className={`h-4 w-4 mr-1 ${isSaved ? "fill-primary" : ""}`} />}
+                {/* Optional Text: */}
+                {/* <span className="hidden sm:inline">{isSaved ? "已收藏" : "收藏"}</span> */}
               </Button>
             </div>
           </div>

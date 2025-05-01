@@ -2,9 +2,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { type Locale } from "@/i18n-config"; // Removed dictionary import
-// Remove fake data imports and old type
-// import type { Service } from "@/types/service";
-// import { serviceProviders } from "@/data/services";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react"; // Import Star icon for rating

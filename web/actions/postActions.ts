@@ -7,6 +7,7 @@ import prisma from '@/lib/prisma';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 import { Visibility, MediaType } from '@prisma/client'; // Import enums
+import { Prisma } from '@prisma/client';
 
 // Schema for creating a post
 const CreatePostSchema = z.object({
@@ -84,4 +85,133 @@ export async function createPostAction(
   }
 }
 
-// --- Keep other actions like toggleFollowAction if they exist ---
+// --- Action to Toggle Like on a Post ---
+export async function toggleLikeAction(
+    postId: string
+): Promise<{ success: boolean; error?: string; newState: boolean }> {
+    if (!postId) return { success: false, error: 'Post ID is required.', newState: false };
+
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
+
+    // 1. Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+        return { success: false, error: 'User not authenticated', newState: false };
+    }
+    const userId = user.id;
+
+    try {
+        // 2. Check if like exists
+        const existingLike = await prisma.like.findFirst({
+            where: {
+                userId: userId,
+                postId: postId,
+                commentId: null, // Ensure we are liking the post, not a comment
+            },
+            select: { id: true }
+        });
+
+        let isLiked: boolean;
+
+        // 3. Perform action
+        if (existingLike) {
+            // --- Unlike ---
+            await prisma.like.delete({
+                where: { id: existingLike.id }
+            });
+            console.log(`User ${userId} unliked Post ${postId}`);
+            isLiked = false;
+        } else {
+            // --- Like ---
+            await prisma.like.create({
+                data: {
+                    userId: userId,
+                    postId: postId,
+                    commentId: null, // Explicitly set commentId to null for post likes
+                }
+            });
+            console.log(`User ${userId} liked Post ${postId}`);
+            isLiked = true;
+             // TODO: Create notification for post author?
+        }
+
+        // 4. Revalidate paths where like counts might appear
+        revalidatePath('/');
+        revalidatePath('/community');
+        revalidatePath('/profile');
+        // Revalidate specific post page if exists: revalidatePath(`/post/${postId}`);
+        // Revalidate author's profile page: (need author id)
+        // Revalidate liker's liked posts list?
+
+        return { success: true, newState: isLiked };
+
+    } catch (error) {
+        console.error("Error toggling like:", error);
+        return { success: false, error: 'Failed to update like status.', newState: false };
+    }
+}
+
+
+// --- Action to Toggle Save/Bookmark (Collection) on a Post ---
+export async function toggleSaveAction(
+    postId: string
+): Promise<{ success: boolean; error?: string; newState: boolean }> {
+    if (!postId) return { success: false, error: 'Post ID required.', newState: false };
+
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
+
+    // 1. Get user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+        return { success: false, error: 'User not authenticated', newState: false };
+    }
+    const userId = user.id;
+
+    try {
+        // 2. Check if collection item exists
+        const existingCollection = await prisma.collection.findUnique({
+            where: {
+                userId_postId: { // Use the @@unique constraint fields
+                    userId: userId,
+                    postId: postId,
+                }
+            },
+            select: { id: true }
+        });
+
+        let isSaved: boolean;
+
+        // 3. Perform action
+        if (existingCollection) {
+            // --- Unsave ---
+            await prisma.collection.delete({
+                where: { id: existingCollection.id }
+            });
+            console.log(`User ${userId} unsaved Post ${postId}`);
+            isSaved = false;
+        } else {
+            // --- Save ---
+            await prisma.collection.create({
+                data: {
+                    userId: userId,
+                    postId: postId,
+                }
+            });
+            console.log(`User ${userId} saved Post ${postId}`);
+            isSaved = true;
+        }
+
+        // 4. Revalidate paths where collections might appear
+        revalidatePath('/profile'); // User's own profile (e.g., Collections tab)
+        revalidatePath('/'); // If saved status shown on feed cards visually
+        revalidatePath('/community');
+
+        return { success: true, newState: isSaved };
+
+    } catch (error) {
+        console.error("Error toggling save:", error);
+        return { success: false, error: 'Failed to update save status.', newState: false };
+    }
+}

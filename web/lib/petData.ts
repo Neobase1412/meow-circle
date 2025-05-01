@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import { notFound } from 'next/navigation';
 
+
 // Define the type for the detailed Pet Profile data
 export type PetProfileData = Prisma.PetGetPayload<{
     include: {
@@ -75,10 +76,6 @@ export async function getPetProfileData(petId: string): Promise<PetProfileData> 
         });
 
     } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2023') {
-             console.error(`Invalid pet ID format: ${petId}`, error);
-             notFound();
-        }
         console.error(`Error fetching pet profile data for ID: ${petId}`, error);
         // Trigger 404 for other unexpected errors during fetch
         notFound();
