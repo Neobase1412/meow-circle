@@ -1,5 +1,5 @@
 // web/prisma/seed.ts
-import { PrismaClient, UserRole, MembershipLevel, Visibility, MediaType, PetGender } from '@prisma/client';
+import { PrismaClient, UserRole, MembershipLevel, Visibility, MediaType, PetGender, ServiceCategory } from '@prisma/client';
 // You might need a hashing library if you were seeding passwords for Prisma-only auth
 // import bcrypt from 'bcrypt';
 
@@ -202,7 +202,143 @@ async function main() {
       }
   });
 
-  console.log('Follows seeded.');
+  const provider1 = await prisma.serviceProvider.upsert({
+      where: { id: "1" }, // Use predefined IDs from your fake data
+      update: {},
+      create: {
+          id: "1",
+          name: "喵喵動物醫院",
+          description: "專業的貓咪醫療團隊，提供全方位的貓咪健康照護服務",
+          logoUrl: "/images/providers/provider1-logo.png",
+          coverImageUrl: "/images/providers/provider1-cover.jpg",
+          address: "台北市中山區喵喵路123號",
+          city: "台北市",
+          district: "中山區",
+          zipCode: "104",
+          phone: "02-1234-5678",
+          email: "service@meowvet.com",
+          website: "https://www.meowvet.com",
+          businessHours: { // Store as JSON
+              monday: { open: "09:00", close: "21:00" }, tuesday: { open: "09:00", close: "21:00" },
+              wednesday: { open: "09:00", close: "21:00" }, thursday: { open: "09:00", close: "21:00" },
+              friday: { open: "09:00", close: "21:00" }, saturday: { open: "10:00", close: "18:00" },
+              sunday: { open: "10:00", close: "18:00" },
+          },
+          isVerified: true,
+          certifications: ["台灣獸醫師公會認證", "國際貓科醫學協會會員"],
+          ratingAvg: 4.8, // Set initial rating/count
+          reviewCount: 156,
+          tags: ["專業醫療", "24小時急診", "貓咪專科"],
+      }
+  });
+
+  const provider2 = await prisma.serviceProvider.upsert({
+      where: { id: "2" },
+      update: {},
+      create: {
+            id: "2",
+            name: "毛孩美容沙龍",
+            description: "專業的寵物美容服務，讓您的毛孩展現最佳風采",
+            logoUrl: "/images/providers/provider2-logo.png",
+            coverImageUrl: "/images/providers/provider2-cover.jpg",
+            address: "台北市信義區寵物路456號",
+            city: "台北市", district: "信義區", zipCode: "110",
+            phone: "02-8765-4321", email: "service@petgrooming.com", website: "https://www.petgrooming.com",
+            businessHours: { monday: { open: "10:00", close: "20:00" }, tuesday: { open: "10:00", close: "20:00" }, wednesday: { open: "10:00", close: "20:00" }, thursday: { open: "10:00", close: "20:00" }, friday: { open: "10:00", close: "20:00" }, saturday: { open: "10:00", close: "20:00" }, sunday: { open: "12:00", close: "18:00" } },
+            isVerified: true, certifications: ["專業寵物美容師認證", "亞洲寵物美容協會會員"],
+            ratingAvg: 4.7, reviewCount: 98, tags: ["貓咪美容", "專業修剪", "溫和服務"],
+      }
+  });
+
+  const provider3 = await prisma.serviceProvider.upsert({
+      where: { id: "3" },
+      update: {},
+      create: {
+            id: "3",
+            name: "喵星人旅館",
+            description: "五星級貓咪住宿服務，讓您的愛貓享受舒適的假期",
+            logoUrl: "/images/providers/provider3-logo.png", coverImageUrl: "/images/providers/provider3-cover.jpg",
+            address: "台北市大安區貓咪路789號", city: "台北市", district: "大安區", zipCode: "106",
+            phone: "02-2345-6789", email: "service@cathotel.com", website: "https://www.cathotel.com",
+            businessHours: { monday: { open: "08:00", close: "20:00" }, tuesday: { open: "08:00", close: "20:00" }, wednesday: { open: "08:00", close: "20:00" }, thursday: { open: "08:00", close: "20:00" }, friday: { open: "08:00", close: "20:00" }, saturday: { open: "08:00", close: "20:00" }, sunday: { open: "08:00", close: "20:00" } },
+            isVerified: true, certifications: ["寵物旅館協會認證", "寵物照護專業認證"],
+            ratingAvg: 4.9, reviewCount: 120, tags: ["豪華套房", "24小時監控", "專業照護"],
+      }
+  });
+  console.log('Providers seeded:', { provider1, provider2, provider3 });
+
+
+  // --- Seed Services ---
+  console.log(`Seeding services ...`);
+  const service1 = await prisma.service.upsert({
+      where: { id: "1" }, update: {}, create: {
+          id: "1", name: "貓咪健康檢查", description: "全面的貓咪健康檢查服務...",
+          category: ServiceCategory.HEALTH_CHECK, coverImageUrl: "/images/services/service1-cover.jpg", iconUrl: "/images/services/service1-icon.png",
+          providerId: provider1.id, isActive: true, isRecommended: true,
+      }
+  });
+  const service2 = await prisma.service.upsert({
+      where: { id: "2" }, update: {}, create: {
+          id: "2", name: "貓咪美容服務", description: "專業的貓咪美容服務...",
+          category: ServiceCategory.GROOMING, coverImageUrl: "/images/services/service2-cover.jpg", iconUrl: "/images/services/service2-icon.png",
+          providerId: provider2.id, isActive: true, isRecommended: true,
+      }
+  });
+  const service3 = await prisma.service.upsert({
+      where: { id: "3" }, update: {}, create: {
+          id: "3", name: "貓咪豪華住宿", description: "舒適安全的貓咪住宿服務...",
+          category: ServiceCategory.BOARDING, coverImageUrl: "/images/services/service3-cover.jpg", iconUrl: "/images/services/service3-icon.png",
+          providerId: provider3.id, isActive: true, isRecommended: true,
+      }
+  });
+    const service4 = await prisma.service.upsert({
+      where: { id: "4" }, update: {}, create: {
+          id: "4", name: "貓咪疫苗接種", description: "專業的貓咪疫苗接種服務...",
+          category: ServiceCategory.HEALTH_CHECK, coverImageUrl: "/images/services/service4-cover.jpg", iconUrl: "/images/services/service4-icon.png",
+          providerId: provider1.id, isActive: true, isRecommended: false,
+      }
+  });
+    const service5 = await prisma.service.upsert({
+      where: { id: "5" }, update: {}, create: {
+          id: "5", name: "貓咪牙齒護理", description: "專業的貓咪牙齒檢查和清潔服務...",
+          category: ServiceCategory.HEALTH_CHECK, coverImageUrl: "/images/services/service5-cover.jpg", iconUrl: "/images/services/service5-icon.png",
+          providerId: provider1.id, isActive: true, isRecommended: false,
+      }
+  });
+  console.log('Services seeded:', { service1, service2, service3, service4, service5 });
+
+  // --- Seed Service Items ---
+  // Note: For brevity, only adding a few. Add the rest from your fake data.
+  console.log(`Seeding service items ...`);
+  await prisma.serviceItem.upsert({
+      where: { id: "1" }, update: {}, create: {
+          id: "1", serviceId: service1.id, name: "基礎健康檢查", description: "包含體重測量...",
+          price: 800, duration: 30, imageUrl: "/images/services/item1.jpg", isPopular: true,
+      }
+  });
+  await prisma.serviceItem.upsert({
+      where: { id: "2" }, update: {}, create: {
+          id: "2", serviceId: service1.id, name: "進階健康檢查", description: "包含基礎檢查項目...",
+          price: 2500, duration: 60, imageUrl: "/images/services/item2.jpg", isPopular: true,
+      }
+  });
+  await prisma.serviceItem.upsert({
+      where: { id: "4" }, update: {}, create: {
+          id: "4", serviceId: service2.id, name: "基礎洗澡", description: "基礎的貓咪洗澡服務...",
+          price: 1200, duration: 60, imageUrl: "/images/services/item4.jpg", isPopular: true,
+      }
+  });
+  await prisma.serviceItem.upsert({
+      where: { id: "6" }, update: {}, create: {
+          id: "6", serviceId: service3.id, name: "標準套房", description: "舒適的標準套房...",
+          price: 800, duration: 1440, imageUrl: "/images/services/item6.jpg", isPopular: true,
+      }
+  });
+  console.log('Service items seeded.');
+
+  // --- Seed Service Bookings & Reviews (Optional) ---
+  // You can add seeding for these if needed for testing, linking them to seeded users and services.
+  // Remember to handle potential foreign key constraints correctly.
 
   console.log(`Seeding finished.`);
 }
