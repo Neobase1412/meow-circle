@@ -32,8 +32,7 @@ interface CreatePostInput {
 export async function createPostAction(
   input: CreatePostInput
 ): Promise<{ success: boolean; error?: string; postId?: string }> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
 
   // 1. Get current user
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
@@ -91,8 +90,7 @@ export async function toggleLikeAction(
 ): Promise<{ success: boolean; error?: string; newState: boolean }> {
     if (!postId) return { success: false, error: 'Post ID is required.', newState: false };
 
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // 1. Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -159,8 +157,7 @@ export async function toggleSaveAction(
 ): Promise<{ success: boolean; error?: string; newState: boolean }> {
     if (!postId) return { success: false, error: 'Post ID required.', newState: false };
 
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // 1. Get user
     const { data: { user }, error: authError } = await supabase.auth.getUser();

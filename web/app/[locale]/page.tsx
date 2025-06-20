@@ -17,8 +17,8 @@ import { getHomePageData } from "@/lib/homePageData"; // Import data fetching fu
 import type { PostForCommunityFeed, TagForCommunitySidebar } from "@/lib/communityData";
 
 
-export default async function Home({ params }: { params: { locale: Locale } }) { // Simplified params type
-  const locale = params.locale;
+export default async function Home({ params }: { params: Promise<{ locale: Locale }> }) { // Simplified params type
+  const { locale } = await params;
   const t = dictionary[locale];
 
   // Fetch real data

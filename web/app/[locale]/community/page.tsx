@@ -16,8 +16,8 @@ import CreatePostCard from "@/components/create-post-card";
 // import { Visibility } from '@prisma/client';
 
 // The Page Component (async)
-export default async function CommunityPage({ params }: { params: { locale: Locale } }) {
-  const locale = params.locale;
+export default async function CommunityPage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params;
   const t = dictionary[locale];
 
   // Fetch data using the helper function

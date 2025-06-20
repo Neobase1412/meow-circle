@@ -28,8 +28,7 @@ interface CreateDiscussionInput {
 export async function createDiscussionAction(
   input: CreateDiscussionInput
 ): Promise<{ success: boolean; error?: string; discussionId?: string }> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
 
   // 1. Get current user
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();

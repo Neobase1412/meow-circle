@@ -7,8 +7,8 @@ import NotificationSettingsForm from "@/components/settings/notification-setting
 import PrivacySettingsForm from "@/components/settings/privacy-settings-form";
 
 // Assuming params structure is correctly resolved before this component renders
-export default async function SettingsPage({ params }: { params: { locale: Locale } }) {
-  const locale = params.locale; // Directly use locale if resolved
+export default async function SettingsPage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params; // Directly use locale if resolved
   const t = dictionary[locale];
 
   return (

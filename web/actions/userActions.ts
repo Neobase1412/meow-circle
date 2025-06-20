@@ -22,8 +22,7 @@ const UpdateProfileSchema = z.object({
 export async function updateUserProfile(
   formData: unknown // Use unknown for initial input, validate with Zod
 ): Promise<{ success: boolean; error?: string; updatedUser?: { username: string | null } }> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
 
   // 1. Get current user
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
@@ -35,7 +34,7 @@ export async function updateUserProfile(
   const validationResult = UpdateProfileSchema.safeParse(formData);
   if (!validationResult.success) {
     console.error("Update Profile Validation Error:", validationResult.error.flatten());
-    return { success: false, error: 'Invalid data provided.', details: validationResult.error.flatten() };
+    return { success: false, error: 'Invalid data provided.' };
   }
 
   const dataToUpdate = validationResult.data;
@@ -43,8 +42,12 @@ export async function updateUserProfile(
   // Prevent updating fields that weren't intended if they are empty in the schema result
   // (e.g., if username wasn't in formData, dataToUpdate.username would be undefined)
   // Clean the object from undefined values
-   Object.keys(dataToUpdate).forEach(key => dataToUpdate[key] === undefined && delete dataToUpdate[key]);
-
+  Object.keys(dataToUpdate).forEach(key => {
+    const typedKey = key as keyof typeof dataToUpdate;
+    if (dataToUpdate[typedKey] === undefined) {
+      delete dataToUpdate[typedKey];
+    }
+  });
 
   try {
     // 3. Check username uniqueness if username is being updated
@@ -88,8 +91,7 @@ export async function updateUserProfile(
 export async function updateUserAvatar(
     avatarUrl: string
 ): Promise<{ success: boolean; error?: string }> {
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // 1. Get user
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();

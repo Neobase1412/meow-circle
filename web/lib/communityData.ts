@@ -30,7 +30,8 @@ export async function getCommunityPageData() {
     // Fetch latest public posts
     const { authUser } = await getUserData();
 
-    const latestPostsData: PostForCommunityFeed[] = await prisma.post.findMany({
+    // First get the raw post data from Prisma
+    const rawPosts = await prisma.post.findMany({
         where: {
             visibility: Visibility.PUBLIC,
             isArchived: false,
@@ -45,9 +46,26 @@ export async function getCommunityPageData() {
             },
             _count: {
                 select: { likes: true, comments: true }
-            }
+            },
+            // Include likes for the current user to determine if they've liked the post
+            likes: authUser ? {
+                where: { userId: authUser.id },
+                select: { userId: true }
+            } : false,
+            // Include saved posts for the current user
+            collections: authUser ? {
+                where: { userId: authUser.id },
+                select: { userId: true }
+            } : false
         }
     });
+
+    // Map the raw posts to include the required fields for PostForCommunityFeed
+    const latestPostsData: PostForCommunityFeed[] = rawPosts.map(post => ({
+        ...post,
+        currentUserLiked: authUser ? post.likes.some(like => like.userId === authUser.id) : false,
+        currentUserSaved: authUser ? post.collections.some(collection => collection.userId === authUser.id) : false
+    }));
 
     // --- Fetch Like/Save Status if Logged In ---
     let likedPostIds = new Set<string>();

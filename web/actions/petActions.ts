@@ -28,8 +28,7 @@ type CreatePetInput = z.infer<typeof CreatePetSchema>;
 export async function createPetAction(
   input: CreatePetInput // Use the inferred type
 ): Promise<{ success: boolean; error?: string; petId?: string }> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
 
   // 1. Get user
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();

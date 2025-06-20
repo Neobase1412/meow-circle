@@ -9,9 +9,8 @@ import { Prisma } from '@prisma/client';
 
 export async function toggleFollowAction(
   targetUserId: string
-): Promise<{ success: boolean; error?: string }> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+): Promise<{ success: boolean; error?: string; isFollowing?: boolean }> {
+  const supabase = await createClient();
 
   // 1. Get current logged-in user
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();

@@ -80,7 +80,7 @@ export default function FollowButton({
 
   // Determine button text and variant
   let buttonText = "Follow";
-  let buttonVariant: "default" | "outline" = "default";
+  let buttonVariant: "default" | "outline" | "destructive" = "default";
   let Icon = UserPlus;
 
   if (isFollowing) {

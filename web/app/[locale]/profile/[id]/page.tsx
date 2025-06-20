@@ -24,8 +24,8 @@ interface ProfilePageParams {
 }
 
 // --- The Page Component ---
-export default async function UserProfilePage({ params }: { params: ProfilePageParams }) {
-  const { locale, id: profileOwnerId } = params;
+export default async function UserProfilePage({ params }: { params: Promise<ProfilePageParams> }) {
+  const { locale, id: profileOwnerId } = await params;
   const t = dictionary[locale];
 
   // Fetch data for the profile being viewed using the ID

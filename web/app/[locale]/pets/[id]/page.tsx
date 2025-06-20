@@ -19,14 +19,14 @@ import type { PetProfileData } from "@/lib/petData";
 import type { HealthRecord, LifeRecord } from '@prisma/client'; // Import specific types for cards
 
 interface PetProfilePageProps {
-  params: {
+  params: Promise<{
     locale: Locale;
     id: string; // Pet ID from URL
-  };
+  }>;
 }
 
 export default async function PetProfilePage({ params }: PetProfilePageProps) {
-  const { locale, id: petId } = params;
+  const { locale, id: petId } = await params;
   const t = dictionary[locale];
 
   // Fetch the specific pet's data
