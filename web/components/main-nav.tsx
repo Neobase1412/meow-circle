@@ -21,6 +21,7 @@ import { type Locale, dictionary } from "@/i18n-config";
 // No longer need to import AuthUser/ProfileUser types for props
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from "@/context/AuthContext"; // Import the custom hook
+import { ModeToggle } from "./light-switch";
 
 // Remove authUser and profile from props interface
 interface MainNavProps {
@@ -146,6 +147,7 @@ export default function MainNav({ locale }: MainNavProps) {
         {/* Right Side: Icons and Auth Buttons/Dropdown */}
         <div className="flex items-center gap-1 md:gap-2">
           {/* ... Search Icon ... */}
+          <ModeToggle />
           <Button variant="ghost" size="icon">
             <Search className="h-5 w-5" />
             <span className="sr-only">{t["search"]}</span>
