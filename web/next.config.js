@@ -5,7 +5,9 @@ const nextConfig = {
     unoptimized: true,
   },
   experimental: {
-    serverActions: true,
+    serverActions: {
+      allowedOrigins: ['localhost:3000'],
+    },
   },
   // Required for Docker standalone build
   output: 'standalone',
