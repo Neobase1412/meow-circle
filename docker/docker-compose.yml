@@ -9,6 +9,29 @@ name: supabase
 
 services:
 
+  # --- [合併進來的 web 服務] ---
+  web:
+    container_name: meow-circle-web
+    image: partnerai/meow-circle:1.0.8-unified-auth
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      # PostgreSQL Database - 在容器中使用服務名稱代替 localhost
+      DATABASE_URL: postgresql://postgres:BkgP8eYx4fLz2n7D9vTs5uQmRcK3aHwJ@db:5432/postgres?schema=public
+      # Supabase Configuration - 伺服器端使用容器網路，客戶端使用localhost
+      SUPABASE_URL: http://kong:8000
+      NEXT_PUBLIC_SUPABASE_URL: http://localhost:8000
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      # 跳過健康檢查，直接啟動
+      SKIP_HEALTH_CHECK: "true"
+    depends_on:
+      - db
+      - kong
+
+  # --- [原始 Supabase 服務] ---
   studio:
     container_name: supabase-studio
     image: supabase/studio:2025.04.21-sha-173cc56

@@ -5,7 +5,7 @@ import { match as matchLocale } from '@formatjs/intl-localematcher';
 import Negotiator from 'negotiator';
 
 // Import Supabase functions (using the correct package)
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 
 // --- Function: Get User Preferred Locale ---
 function getLocale(request: NextRequest): string | undefined {
@@ -43,31 +43,37 @@ export async function middleware(request: NextRequest) {
       );
   }
 
-  // === 2. Handle Supabase Session Refresh (using the pattern from the official guide) ===
+  // === 2. Handle Supabase Session Refresh ===
 
   // Create an initial response object.
-  let response = NextResponse.next({
+  let supabaseResponse = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
 
-  // Create Supabase client for middleware.
+  // Create Supabase client for middleware using new cookie methods
+  // 使用客戶端相同的 URL 確保 cookie 同步
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        getAll() {
+          return request.cookies.getAll();
         },
-        set(name: string, value: string, options: CookieOptions) {
-          // The 'response' object is used here, matching the guide
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: CookieOptions) {
-          // The 'response' object is used here, matching the guide
-          response.cookies.set({ name, value: '', ...options });
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => 
+            request.cookies.set(name, value)
+          );
+          supabaseResponse = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
         },
       },
     }
@@ -79,12 +85,11 @@ export async function middleware(request: NextRequest) {
   // (Optional) Add authentication-based route protection here...
 
   // Return the response, potentially modified with updated Supabase auth cookies
-  return response;
+  return supabaseResponse;
 }
 
 export const config = {
   matcher: [
-     // ... (your matcher as before) ...
     '/((?!api|_next/static|_next/image|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|favicon.ico).*)',
   ],
 }
