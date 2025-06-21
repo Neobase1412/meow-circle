@@ -24,18 +24,18 @@ WORKDIR /app/web
 COPY --from=packages /app/web/node_modules ./node_modules
 COPY --from=packages /app/web/prisma ./prisma
 
-# 複製專案原始碼
+# 複製專案原始碼 (包含 .env.local)
 COPY . .
-
-# 【關鍵修改】
-# 在建構階段，不要提供 NEXT_PUBLIC_ 變數的具體值。
-# 這樣 Next.js 會將其視為運行時變數，而不是建構時常量。
-# 你可以完全不設定，或者設定為空字串，以避免任何硬編碼。
-ENV NEXT_PUBLIC_SUPABASE_URL=""
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=""
 
 # Generate Prisma client
 RUN pnpm prisma generate
+
+# 設置建構時環境變數給 Next.js
+ARG NEXT_PUBLIC_SUPABASE_URL=http://localhost:8000
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzQ2NzIwMDAwLCJleHAiOjE5MDQ0ODY0MDB9.y-EksR5ovQHe-DbciTu5vsdCsVqFyyPttJuBwqnBalo
+
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 # Build the Next.js application
 RUN pnpm build
@@ -49,7 +49,7 @@ ENV PORT=3000
 
 # 設置基礎環境變數的預設值，將由 entrypoint.sh 使用
 # 這些是非 NEXT_PUBLIC_ 的變數，只在伺服器端使用
-ENV SUPABASE_URL="http://kong:8000"
+ENV SUPABASE_URL="http://localhost:8000"
 ENV SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzQ2NzIwMDAwLCJleHAiOjE5MDQ0ODY0MDB9.y-EksR5ovQHe-DbciTu5vsdCsVqFyyPttJuBwqnBalo"
 ENV DATABASE_URL="postgresql://postgres:BkgP8eYx4fLz2n7D9vTs5uQmRcK3aHwJ@localhost:5433/postgres?schema=public"
 
