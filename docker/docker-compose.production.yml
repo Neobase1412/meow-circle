@@ -5,7 +5,7 @@
 #   Destroy:            docker compose -f docker-compose.yml -f ./dev/docker-compose.dev.yml down -v --remove-orphans
 #   Reset everything:  ./reset.sh
 
-name: supabase
+version: '3.8'
 
 services:
 
@@ -82,7 +82,7 @@ services:
 
       LOGFLARE_API_KEY: Jk7nPz8dHxLmRt5Ys9Vb2cF4gE3wQaA6
       LOGFLARE_URL: http://analytics:4000
-      NEXT_PUBLIC_ENABLE_LOGS: true
+      NEXT_PUBLIC_ENABLE_LOGS: "true"
       # Comment to use Big Query backend for analytics
       NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
       # Uncomment to use Big Query backend for analytics
@@ -149,7 +149,7 @@ services:
 
       GOTRUE_SITE_URL: http://localhost:3000
       GOTRUE_URI_ALLOW_LIST: https://yourapp.com,https://app.yourapp.com
-      GOTRUE_DISABLE_SIGNUP: false
+      GOTRUE_DISABLE_SIGNUP: "false"
 
       GOTRUE_JWT_ADMIN_ROLES: service_role
       GOTRUE_JWT_AUD: authenticated
@@ -264,8 +264,8 @@ services:
       DNS_NODES: "''"
       RLIMIT_NOFILE: "10000"
       APP_NAME: realtime
-      SEED_SELF_HOST: true
-      RUN_JANITOR: true
+      SEED_SELF_HOST: "true"
+      RUN_JANITOR: "true"
 
   # To use S3 backed storage: docker compose -f docker-compose.yml -f docker-compose.s3.yml up
   storage:
@@ -331,7 +331,7 @@ services:
       IMGPROXY_BIND: ":5001"
       IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
       IMGPROXY_USE_ETAG: "true"
-      IMGPROXY_ENABLE_WEBP_DETECTION: true
+      IMGPROXY_ENABLE_WEBP_DETECTION: "true"
 
   meta:
     container_name: supabase-meta
@@ -410,8 +410,8 @@ services:
       DB_PASSWORD: BkgP8eYx4fLz2n7D9vTs5uQmRcK3aHwJ
       DB_SCHEMA: _analytics
       LOGFLARE_API_KEY: Jk7nPz8dHxLmRt5Ys9Vb2cF4gE3wQaA6
-      LOGFLARE_SINGLE_TENANT: true
-      LOGFLARE_SUPABASE_MODE: true
+      LOGFLARE_SINGLE_TENANT: "true"
+      LOGFLARE_SUPABASE_MODE: "true"
       LOGFLARE_MIN_CLUSTER_SIZE: 1
 
       # Comment variables to use Big Query backend for analytics
@@ -547,7 +547,7 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD: BkgP8eYx4fLz2n7D9vTs5uQmRcK3aHwJ
       DATABASE_URL: ecto://supabase_admin:BkgP8eYx4fLz2n7D9vTs5uQmRcK3aHwJ@db:5432/_supabase
-      CLUSTER_POSTGRES: true
+      CLUSTER_POSTGRES: "true"
       SECRET_KEY_BASE: K8zPv2eGmRaXsFw7YtN4dJqB9cH6UxLyTnV5bWpE3AfQjZuD
       VAULT_ENC_KEY: zPm8aLdKvB3wFsG9rHxQ7nYc5tJeT6NE2uVk
       API_JWT_SECRET: Ja9zFpQm2sX7vBdN4eKgH6LtR8yW3cUxZkY5nP

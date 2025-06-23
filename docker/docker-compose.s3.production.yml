@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
 
   minio:
@@ -93,4 +95,4 @@ services:
     environment:
       IMGPROXY_BIND: ":5001"
       IMGPROXY_USE_ETAG: "true"
-      IMGPROXY_ENABLE_WEBP_DETECTION: true
+      IMGPROXY_ENABLE_WEBP_DETECTION: "true"
