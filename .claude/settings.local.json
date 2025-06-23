@@ -10,7 +10,8 @@
       "Bash(docker compose stop:*)",
       "Bash(find:*)",
       "Bash(docker compose:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }
