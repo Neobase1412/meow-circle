@@ -18,11 +18,15 @@ pnpm lint         # Run ESLint
 pnpm lint:fix     # Fix ESLint issues automatically
 pnpm db:seed      # Seed database with initial data
 
-# Docker operations (from root)
-docker-compose up -d                    # Start all services
-docker-compose -f docker/docker-compose.dev.yml up -d  # Start dev environment
-docker-compose down                     # Stop all services
-./docker/reset.sh                       # Reset database and restart services
+# Docker operations (from docker/ directory)
+cd docker
+docker compose up -d                              # Start all services with Nginx
+docker compose -f docker-compose.yml -f dev/docker-compose.dev.yml up -d  # Start dev environment
+docker compose down                               # Stop all services
+./reset.sh                                       # Reset database and restart services
+
+# Production deployment
+docker compose up -d nginx web kong              # Start core services for production
 ```
 
 ## Architecture Overview
@@ -31,10 +35,11 @@ docker-compose down                     # Stop all services
 - **Frontend**: Next.js 15.2.4 with React 19
 - **Styling**: Tailwind CSS with shadcn/ui components
 - **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: Supabase Auth
+- **Authentication**: Supabase Auth with SSR support
 - **Backend**: Supabase (PostgreSQL + Auth + Storage + Edge Functions)
+- **Reverse Proxy**: Nginx for production deployment
 - **Internationalization**: Custom i18n with English and Traditional Chinese support
-- **Deployment**: Docker containerization
+- **Deployment**: Docker containerization with multi-stage builds
 
 ### Key Directories Structure
 ```
@@ -51,6 +56,9 @@ web/
 
 docker/                 # Docker configuration and services
 ├── volumes/           # Persistent volumes for containers
+│   ├── nginx/        # Nginx configuration and logs
+│   ├── db/           # PostgreSQL data and migrations
+│   └── storage/      # File storage volumes
 └── dev/              # Development-specific configurations
 ```
 
@@ -101,11 +109,32 @@ The application uses a comprehensive Prisma schema with these main entity groups
 
 ## Important Configuration Notes
 
-- Supabase URL is currently hardcoded to `http://localhost:8000` for local development
-- Database uses PostgreSQL with comprehensive indexing for performance
-- Docker configuration includes separate dev and production setups
-- ESLint configuration includes Next.js rules
-- TypeScript strict mode is enabled
+### Authentication & Session Management
+- **Fixed Docker Authentication Issue**: Implemented unified Supabase URL approach with socat proxy
+- All Supabase clients (server, client, middleware) use `localhost:8000` for consistent cookie domains
+- Container-internal proxy redirects `localhost:8000` to `kong:8000` for Docker networking
+- Login flow uses `window.location.href` for proper session synchronization
+
+### Deployment Configuration
+- **Production Image**: `partnerai/meow-circle:1.0.8-unified-auth` with authentication fixes
+- **Nginx Reverse Proxy**: HTTP-only configuration for IP-based demo deployment
+- **Port Configuration**: 
+  - Nginx: 80 (only external port - proxies web app and studio)
+  - Internal services: 3000 (web), 3000 (studio), 8000 (supabase API) - all internal only
+- **GCP Ready**: Configured for `http://<IP>` access without domain requirements
+- **Secure Architecture**: Only 1 external port (80), all services accessible via nginx proxy
+
+### Environment Variables
+- `NEXT_PUBLIC_SUPABASE_URL`: Client-side Supabase URL (localhost:8000)
+- `SUPABASE_URL`: Server-side Supabase URL (kong:8000 in container)
+- `DATABASE_URL`: PostgreSQL connection string
+- `SUPABASE_ANON_KEY` & `SERVICE_ROLE_KEY`: Authentication keys
+
+### Docker Architecture
+- Multi-stage build with packages, builder, and production stages
+- Volume mounts for nginx configuration, database, and logs
+- Health checks and dependency management between services
+- Socat proxy for localhost redirection within containers
 
 ## Common Development Tasks
 
@@ -117,6 +146,39 @@ When working with this codebase:
 5. Test both English and Chinese locales
 6. Verify database schema changes with Prisma migrations
 7. Use the established directory structure for new features
+
+## Deployment Guide
+
+### Local Development
+```bash
+cd docker
+docker compose up -d
+# Access: 
+# - Main app: http://localhost (via Nginx)
+# - Supabase Studio: http://localhost/studio/ (via Nginx)
+# - Supabase API: Internal only (not exposed externally)
+```
+
+### GCP Production Deployment
+1. **Prepare GCP Instance**: Ensure Docker and docker-compose are installed
+2. **Firewall**: Open required ports:
+   - 80 (Nginx - Only port needed)
+3. **Deploy**: 
+   ```bash
+   git clone <repo>
+   cd meow-circle/docker
+   docker compose up -d
+   ```
+4. **Access**:
+   - **Main app**: `http://<GCP-EXTERNAL-IP>`
+   - **Supabase Dashboard**: `http://<GCP-EXTERNAL-IP>/studio/`
+   - **Supabase API**: Internal only (used by Next.js app internally)
+
+### Troubleshooting Authentication
+If login API succeeds but web shows logged out:
+- Check container logs: `docker logs meow-circle-web`
+- Verify proxy is running: Should see "Proxy started (PID: X)" in logs
+- Ensure Supabase URLs are consistent across client/server components
 
 ## Testing and Quality
 
