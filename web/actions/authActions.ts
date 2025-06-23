@@ -100,8 +100,7 @@ const UpdateEmailSchema = z.object({
 export async function updateUserEmailAction(
   formData: unknown
 ): Promise<{ success: boolean; error?: string; message?: string }> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore); // Use server client helper
+  const supabase = await createClient(); // Use server client helper
 
   // 1. Get current user session (to ensure user is logged in)
   const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -154,8 +153,7 @@ const UpdatePasswordSchema = z.object({
 export async function updateUserPasswordAction(
     formData: unknown
 ): Promise<{ success: boolean; error?: string }> {
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // 1. Get current user (ensure logged in)
      const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -11,8 +11,7 @@ export async function GET(request: Request) {
   const locale = requestUrl.pathname.split('/')[1] || 'en'; // Default locale if not found
 
   if (code) {
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore); // Use server client helper
+    const supabase = await createClient(); // Use server client helper
 
     try {
         // Exchange the code for a session

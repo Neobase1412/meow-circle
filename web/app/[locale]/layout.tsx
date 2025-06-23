@@ -13,9 +13,9 @@ export default async function LocaleLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { locale: Locale };
+  params: Promise<{ locale: Locale }>;
 }) {
-  const locale = params.locale;
+  const { locale } = await params;
 
   // Fetch user data using the imported helper function
   const { authUser, profile } = await getUserData();

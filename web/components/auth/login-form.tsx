@@ -56,9 +56,8 @@ export default function LoginForm({ locale }: LoginFormProps) {
         }
         console.error("Login failed:", signInError);
       } else {
-        // Login successful
-        router.push(`/${locale}`); // Redirect to home or dashboard
-        router.refresh(); // IMPORTANT: Refresh server components to reflect login state
+        // Login successful - force full page reload to sync session
+        window.location.href = `/${locale}`;
       }
     } catch (error) {
       console.error("An unexpected error occurred during login:", error);

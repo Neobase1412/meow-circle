@@ -2,6 +2,7 @@
 import prisma from '@/lib/prisma';
 import { Visibility } from '@prisma/client';
 import type { Prisma } from '@prisma/client';
+import { getUserData } from '@/lib/userData';
 
 // Import or define types needed by consuming components
 import type { PostForCommunityFeed, TagForCommunitySidebar } from '@/lib/communityData'; // Reuse types if suitable
@@ -11,8 +12,11 @@ import type { PostForCommunityFeed, TagForCommunitySidebar } from '@/lib/communi
 // export type RecommendedProduct = Pick<Product, 'id' | 'name' | 'price' | 'imageUrl' | ...>; // Define fields needed for FeaturedProductCard
 
 export async function getHomePageData() {
-    // Fetch latest public posts (similar to community page)
-    const latestPosts: PostForCommunityFeed[] = await prisma.post.findMany({
+    // Get current user data
+    const { authUser } = await getUserData();
+
+    // First get the raw post data from Prisma
+    const rawPosts = await prisma.post.findMany({
         where: {
             visibility: Visibility.PUBLIC,
             isArchived: false,
@@ -27,9 +31,26 @@ export async function getHomePageData() {
             },
             _count: {
                 select: { likes: true, comments: true }
-            }
+            },
+            // Include likes for the current user to determine if they've liked the post
+            likes: authUser ? {
+                where: { userId: authUser.id },
+                select: { userId: true }
+            } : false,
+            // Include saved posts for the current user
+            collections: authUser ? {
+                where: { userId: authUser.id },
+                select: { userId: true }
+            } : false
         }
     });
+
+    // Map the raw posts to include the required fields for PostForCommunityFeed
+    const latestPosts: PostForCommunityFeed[] = rawPosts.map(post => ({
+        ...post,
+        currentUserLiked: authUser ? post.likes.some(like => like.userId === authUser.id) : false,
+        currentUserSaved: authUser ? post.collections.some(collection => collection.userId === authUser.id) : false
+    }));
 
     // Fetch top tags (similar to community page)
     const topTags: TagForCommunitySidebar[] = await prisma.tag.findMany({

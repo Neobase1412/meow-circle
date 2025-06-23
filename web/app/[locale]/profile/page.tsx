@@ -19,8 +19,8 @@ interface ProfilePageParams {
   locale: Locale;
 }
 
-export default async function MyProfilePage({ params }: { params: ProfilePageParams }) {
-  const { locale } = params;
+export default async function MyProfilePage({ params }: { params: Promise<ProfilePageParams> }) {
+  const { locale } = await params;
   const t = dictionary[locale];
 
   // Fetch data for the currently logged-in user

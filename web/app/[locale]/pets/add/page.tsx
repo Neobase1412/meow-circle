@@ -6,11 +6,11 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface AddPetPageProps {
-  params: { locale: Locale };
+  params: Promise<{ locale: Locale }>;
 }
 
-export default function AddPetPage({ params }: AddPetPageProps) {
-  const { locale } = params;
+export default async function AddPetPage({ params }: AddPetPageProps) {
+  const { locale } = await params;
 
   return (
     <div className="container-custom max-w-2xl mx-auto py-8">

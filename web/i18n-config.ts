@@ -55,6 +55,16 @@ export const dictionary = {
     "forgot-password": "Forgot Password?",
     "remember-me": "Remember Me",
     "agree-terms": "I agree to the Terms of Service and Privacy Policy",
+    "invalid-credentials": "Invalid email or password",
+    "unexpected-error": "An unexpected error occurred, please try again later",
+    "social-login-error": "Social login failed",
+    "password-mismatch": "Passwords do not match",
+    "must-agree-terms": "You must agree to the Terms of Service",
+    "user-exists": "This email is already registered",
+    "password-too-weak": "Password is too weak",
+    "check-email-verification": "Please check your email to complete verification",
+    "profile-creation-error": "Registration successful, but profile creation failed",
+    "unexpected-signup-error": "An unexpected error occurred during registration",
 
     // Footer
     "about-us": "About Us",
@@ -78,7 +88,7 @@ export const dictionary = {
     "follow-us": "Follow Us",
     "newsletter-subscription": "Newsletter Subscription",
     copyright: "Copyright",
-    "all-rights-reserved": "© 2023 Meow Circle. All rights reserved.",
+    "all-rights-reserved": " 2023 Meow Circle. All rights reserved.",
     "trademark-notice": "All trademarks are property of their respective owners.",
     "image-license": "Images used under license.",
 
@@ -90,7 +100,7 @@ export const dictionary = {
     "official-announcements": "Official Announcements",
 
     // Footer copyright
-    "footer-copyright": "© 2023 Meow Circle. All rights reserved.",
+    "footer-copyright": " 2023 Meow Circle. All rights reserved.",
     "footer-terms": "Terms of Service",
     "footer-privacy": "Privacy Policy",
     "footer-contact": "Contact Us",
@@ -144,6 +154,16 @@ export const dictionary = {
     "forgot-password": "忘記密碼？",
     "remember-me": "記住我",
     "agree-terms": "我同意服務條款和隱私政策",
+    "invalid-credentials": "帳號或密碼錯誤",
+    "unexpected-error": "發生意外錯誤，請稍後再試",
+    "social-login-error": "無法使用社交帳號登入",
+    "password-mismatch": "密碼不相符",
+    "must-agree-terms": "您必須同意服務條款",
+    "user-exists": "這個電子郵件已經被註冊",
+    "password-too-weak": "密碼太弱",
+    "check-email-verification": "請檢查您的電子郵件以完成驗證",
+    "profile-creation-error": "註冊成功，但個人檔案建立失敗",
+    "unexpected-signup-error": "註冊過程中發生意外錯誤",
 
     // Footer
     "about-us": "關於我們",
@@ -167,7 +187,7 @@ export const dictionary = {
     "follow-us": "關注我們",
     "newsletter-subscription": "訂閱電子報",
     copyright: "版權聲明",
-    "all-rights-reserved": "© 2023 喵圈。保留所有權利。",
+    "all-rights-reserved": " 2023 Meow Circle. All rights reserved.",
     "trademark-notice": "所有商標均為其各自所有者的財產。",
     "image-license": "圖片使用已獲授權。",
 
@@ -179,7 +199,7 @@ export const dictionary = {
     "official-announcements": "官方公告",
 
     // Footer copyright
-    "footer-copyright": "© 2023 喵圈. 保留所有權利。",
+    "footer-copyright": " 2023 Meow Circle. All rights reserved.",
     "footer-terms": "服務條款",
     "footer-privacy": "隱私政策",
     "footer-contact": "聯絡我們",

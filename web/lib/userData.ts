@@ -33,8 +33,7 @@ export async function getUserData(): Promise<{
   authUser: AuthUser | null;
   profile: UserProfileContextType; // Use the new type
 }> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient();
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !authUser) {

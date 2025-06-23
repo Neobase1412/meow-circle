@@ -11,8 +11,8 @@ import DiscussionCard from "@/components/discussion/discussion-card"; // Assumin
 import CreateDiscussionCard from "@/components/create-discussion-card"; // Import the new component
 import { getDiscussionPageData } from "@/lib/discussionData"; // Import updated data fetcher
 
-export default async function DiscussionPage({ params }: { params: { locale: Locale } }) {
-  const locale = params.locale;
+export default async function DiscussionPage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params;
   const t = dictionary[locale];
 
   // Fetch real discussion data
