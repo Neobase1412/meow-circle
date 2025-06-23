@@ -157,9 +157,9 @@ services:
       GOTRUE_JWT_EXP: 3600
       GOTRUE_JWT_SECRET: Ja9zFpQm2sX7vBdN4eKgH6LtR8yW3cUxZkY5nP
 
-      GOTRUE_EXTERNAL_EMAIL_ENABLED: true
-      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: false
-      GOTRUE_MAILER_AUTOCONFIRM: true
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "false"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
 
       # Uncomment to bypass nonce check in ID Token flow. Commonly set to true when using Google Sign In on mobile.
       # GOTRUE_EXTERNAL_SKIP_NONCE_CHECK: true
@@ -177,8 +177,8 @@ services:
       GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
       GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
 
-      GOTRUE_EXTERNAL_PHONE_ENABLED: true
-      GOTRUE_SMS_AUTOCONFIRM: true
+      GOTRUE_EXTERNAL_PHONE_ENABLED: "true"
+      GOTRUE_SMS_AUTOCONFIRM: "true"
       # Uncomment to enable custom access token hook. Please see: https://supabase.com/docs/guides/auth/auth-hooks for full list of hooks and additional details about custom_access_token_hook
 
       # GOTRUE_HOOK_CUSTOM_ACCESS_TOKEN_ENABLED: "true"
