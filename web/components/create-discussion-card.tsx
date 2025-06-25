@@ -22,7 +22,7 @@ interface CreateDiscussionCardProps {
 }
 
 export default function CreateDiscussionCard({ locale }: CreateDiscussionCardProps) {
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
   const { authUser, profile } = useAuth();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();

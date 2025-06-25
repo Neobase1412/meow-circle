@@ -30,7 +30,7 @@ COPY . .
 # Generate Prisma client
 RUN pnpm prisma generate
 
-# 設置建構時環境變數給 Next.js - 生產環境 IP
+# 設置建構時環境變數給 Next.js - 建構時使用外部 IP，運行時會被 docker-compose 覆蓋
 ARG NEXT_PUBLIC_SUPABASE_URL=http://35.229.234.32:8000
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzQ2NzIwMDAwLCJleHAiOjE5MDQ0ODY0MDB9.y-EksR5ovQHe-DbciTu5vsdCsVqFyyPttJuBwqnBalo
 

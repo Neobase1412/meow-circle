@@ -22,7 +22,7 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, locale }: PostCardProps) {
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
   const { authUser } = useAuth(); // Get viewer's auth status
   const { toast } = useToast();
   const [isLikePending, startLikeTransition] = useTransition();

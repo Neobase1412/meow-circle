@@ -34,7 +34,7 @@ interface CreatePostCardProps {
 }
 
 export default function CreatePostCard({ locale }: CreatePostCardProps) {
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
   const { authUser, profile } = useAuth();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();

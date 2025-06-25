@@ -36,7 +36,7 @@ export default function MainNav({ locale }: MainNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
 
   const isActive = (path: string) => {
     if (path === "") return pathname === `/${locale}`;

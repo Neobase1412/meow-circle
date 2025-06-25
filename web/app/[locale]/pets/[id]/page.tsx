@@ -27,7 +27,7 @@ interface PetProfilePageProps {
 
 export default async function PetProfilePage({ params }: PetProfilePageProps) {
   const { locale, id: petId } = await params;
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
 
   // Fetch the specific pet's data
   const pet = await getPetProfileData(petId); // Handles notFound internally

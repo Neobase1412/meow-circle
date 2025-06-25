@@ -18,7 +18,7 @@ import CreatePostCard from "@/components/create-post-card";
 // The Page Component (async)
 export default async function CommunityPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
 
   // Fetch data using the helper function
   const {

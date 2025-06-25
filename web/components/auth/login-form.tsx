@@ -18,7 +18,7 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ locale }: LoginFormProps) {
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
   const router = useRouter();
   const supabase = createClient(); // Instantiate Supabase client
   const [isLoading, setIsLoading] = useState(false);

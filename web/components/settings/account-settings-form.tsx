@@ -18,7 +18,7 @@ interface AccountSettingsFormProps {
 }
 
 export default function AccountSettingsForm({ locale }: AccountSettingsFormProps) {
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
   const { authUser } = useAuth(); // Get user data from context
   const { toast } = useToast();
 

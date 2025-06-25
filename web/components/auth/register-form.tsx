@@ -18,7 +18,7 @@ interface RegisterFormProps {
 }
 
 export default function RegisterForm({ locale }: RegisterFormProps) {
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
   const router = useRouter();
   const supabase = createClient(); // Instantiate Supabase client
   const [isLoading, setIsLoading] = useState(false);

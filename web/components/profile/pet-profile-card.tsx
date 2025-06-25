@@ -16,7 +16,7 @@ interface PetProfileCardProps {
 }
 
 export default function PetProfileCard({ pet, locale }: PetProfileCardProps) {
-  // const t = dictionary[locale]; // 't' was not used, can be removed
+  // const t = dictionary[locale] || dictionary['zh-TW']; // 't' was not used, can be removed
 
   return (
     <Link

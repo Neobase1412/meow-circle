@@ -11,7 +11,7 @@ interface TopicCardProps {
 }
 
 export default function TopicCard({ topic, locale }: TopicCardProps) {
-  // const t = dictionary[locale]; // 't' not used
+  // const t = dictionary[locale] || dictionary['zh-TW']; // 't' not used
 
   return (
     <Link

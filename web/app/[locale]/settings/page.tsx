@@ -9,7 +9,7 @@ import PrivacySettingsForm from "@/components/settings/privacy-settings-form";
 // Assuming params structure is correctly resolved before this component renders
 export default async function SettingsPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params; // Directly use locale if resolved
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
 
   return (
     <div className="container-custom py-6">

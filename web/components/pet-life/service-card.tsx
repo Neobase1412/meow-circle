@@ -13,7 +13,7 @@ interface ServiceCardProps {
 }
 
 export default function ServiceCard({ service, locale }: ServiceCardProps) {
-  // const t = dictionary[locale]; // 't' not used
+  // const t = dictionary[locale] || dictionary['zh-TW']; // 't' not used
 
   // Provider data is now directly included in the service prop
   const provider = service.provider;

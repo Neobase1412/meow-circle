@@ -13,7 +13,7 @@ import { getDiscussionPageData } from "@/lib/discussionData"; // Import updated 
 
 export default async function DiscussionPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
 
   // Fetch real discussion data
   const {

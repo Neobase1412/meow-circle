@@ -16,7 +16,7 @@ interface UserProfileCardProps {
 }
 
 export default function UserProfileCard({ locale }: UserProfileCardProps) {
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
   const { authUser, profile } = useAuth(); // Get data from context
 
   // --- Don't render the card if the user is not logged in ---

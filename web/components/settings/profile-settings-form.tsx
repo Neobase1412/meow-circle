@@ -22,7 +22,7 @@ interface ProfileSettingsFormProps {
 }
 
 export default function ProfileSettingsForm({ locale }: ProfileSettingsFormProps) {
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
   const { authUser, profile } = useAuth(); // Get logged-in user data
   const { toast } = useToast();
   const router = useRouter(); // if needed for navigation

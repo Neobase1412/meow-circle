@@ -109,32 +109,61 @@ The application uses a comprehensive Prisma schema with these main entity groups
 
 ## Important Configuration Notes
 
-### Authentication & Session Management
-- **Fixed Docker Authentication Issue**: Implemented unified Supabase URL approach with socat proxy
-- All Supabase clients (server, client, middleware) use `localhost:8000` for consistent cookie domains
-- Container-internal proxy redirects `localhost:8000` to `kong:8000` for Docker networking
-- Login flow uses `window.location.href` for proper session synchronization
+### Critical Authentication Issue (3+ Days Debugging)
 
-### Deployment Configuration
-- **Production Image**: `partnerai/meow-circle:1.0.8-unified-auth` with authentication fixes
-- **Nginx Reverse Proxy**: HTTP-only configuration for IP-based demo deployment
-- **Port Configuration**: 
-  - Nginx: 80 (only external port - proxies web app and studio)
-  - Internal services: 3000 (web), 3000 (studio), 8000 (supabase API) - all internal only
-- **GCP Ready**: Configured for `http://<IP>` access without domain requirements
-- **Secure Architecture**: Only 1 external port (80), all services accessible via nginx proxy
+**Problem Description:**
+- User can successfully login (API returns 200, creates JWT token)
+- But frontend still shows "not logged in" state  
+- Session not syncing between browser and server components
 
-### Environment Variables
-- `NEXT_PUBLIC_SUPABASE_URL`: Client-side Supabase URL (localhost:8000)
-- `SUPABASE_URL`: Server-side Supabase URL (kong:8000 in container)
-- `DATABASE_URL`: PostgreSQL connection string
-- `SUPABASE_ANON_KEY` & `SERVICE_ROLE_KEY`: Authentication keys
+**Root Cause - Cookie Domain Mismatch:**
+- Frontend (browser) calls `http://35.229.234.32:8000` → creates `sb-35-auth-token` cookie
+- Middleware/Server try to read different cookie → find no valid session
+- Results in login success but immediate logout appearance
+
+**Current Architecture Constraints:**
+- Container **cannot** reach external IP `35.229.234.32:8000` (confirmed timeout errors)
+- Must use internal networking: middleware → localhost:8000 → socat proxy → kong:8000
+- Frontend (browser) **must** use external IP to reach services from outside
+
+**Latest Attempt (v1.0.14):**
+- Frontend: `35.229.234.32:8000` (Dockerfile build-time injection)
+- Middleware: hardcoded `localhost:8000` (via socat proxy)
+- Server: hardcoded `localhost:8000` (via socat proxy)
+- Goal: All use `sb-localhost-auth-token` cookie domain
+
+### Deployment Configuration & Constraints
+
+**Production Environment:**
+- **GCP VM**: Running `docker-compose.production.yml` directly on machine
+- **External IP**: `35.229.234.32` (fixed, services must be accessible from internet)
+- **No Domain**: IP-only access, no DNS configuration
+- **No Nginx**: Direct service exposure (port 3000 for web, port 8000 for Supabase)
+
+**Build Process Constraints:**
+- **Fixed Build Command**: `docker buildx build --no-cache --platform linux/amd64 --push -t partnerai/meow-circle:X.X.X .`
+- **No Build Args**: Cannot modify build command to add `--build-arg` parameters
+- **Version Increment Only**: Only version number changes (currently 1.0.14)
+- **Pre-built Images**: Uses pre-built images from Docker Hub, not local builds
+
+**Container Networking:**
+- **External Access**: Browser → `35.229.234.32:3000` (web), `35.229.234.32:8000` (Supabase)
+- **Internal Network**: web container → kong:8000, db:5432 (container names)
+- **Localhost Proxy**: socat redirects `localhost:8000` → `kong:8000` within web container
+
+### Environment Variables (Production)
+- **Frontend (Client-side)**: `NEXT_PUBLIC_SUPABASE_URL=http://35.229.234.32:8000` (build-time injected)
+- **Middleware**: hardcoded `http://localhost:8000` (container-internal proxy)
+- **Server Actions**: hardcoded `http://localhost:8000` (container-internal proxy)  
+- **Auth Service**: `API_EXTERNAL_URL=http://35.229.234.32:8000` (docker-compose setting)
+- **Database**: `DATABASE_URL=postgresql://postgres:...@db:5432/postgres`
 
 ### Docker Architecture
-- Multi-stage build with packages, builder, and production stages
-- Volume mounts for nginx configuration, database, and logs
-- Health checks and dependency management between services
-- Socat proxy for localhost redirection within containers
+- **Multi-stage Build**: packages → builder → production
+- **Auto Migration**: Container runs `prisma migrate deploy && prisma db seed` on startup
+- **Production Volumes**: Persistent data for db, logs, storage
+- **Internal Networking**: Services communicate via container names
+- **External Access**: Only ports 3000 (web) and 8000 (supabase) exposed
 
 ## Common Development Tasks
 
