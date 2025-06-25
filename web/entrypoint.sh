@@ -27,6 +27,14 @@ echo "Starting Next.js server..."
 echo "Supabase URL: $NEXT_PUBLIC_SUPABASE_URL"
 echo "Database URL: ${DATABASE_URL}"
 
+# Debug: 測試外部 Supabase 連接
+echo "Testing external Supabase connectivity..."
+if wget -q -O - --timeout=5 ${NEXT_PUBLIC_SUPABASE_URL}/health 2>/dev/null; then
+  echo "✅ External Supabase reachable"
+else
+  echo "❌ External Supabase unreachable, will rely on internal proxy"
+fi
+
 # 設置本地代理 - 將 localhost:8000 重定向到 kong:8000
 echo "Setting up localhost:8000 -> kong:8000 proxy..."
 # 安裝 socat 如果不存在

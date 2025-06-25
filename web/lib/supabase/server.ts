@@ -6,8 +6,8 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
-    process.env.SUPABASE_URL!, // 伺服器端使用內部 URL (kong:8000)
-    process.env.SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!, // 使用與前端相同 URL 確保 cookie 一致
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
