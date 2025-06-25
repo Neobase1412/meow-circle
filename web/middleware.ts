@@ -53,10 +53,10 @@ export async function middleware(request: NextRequest) {
   });
 
   // Create Supabase client for middleware using new cookie methods
-  // 使用客戶端相同的 URL 確保 cookie 同步
+  // middleware 在伺服器端執行，使用內部 URL (kong:8000)
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
