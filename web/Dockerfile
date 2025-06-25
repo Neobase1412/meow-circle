@@ -70,6 +70,11 @@ COPY --from=builder /app/web/public ./public
 COPY --from=builder /app/web/.next/standalone ./
 COPY --from=builder /app/web/.next/static ./.next/static
 
+# 複製 Prisma 相關文件用於 migration 和 seeding
+COPY --from=packages /app/web/node_modules ./node_modules
+COPY --from=builder /app/web/prisma ./prisma
+COPY --from=builder /app/web/package.json ./package.json
+
 # Capture build info
 ARG COMMIT_SHA
 ENV COMMIT_SHA=${COMMIT_SHA}

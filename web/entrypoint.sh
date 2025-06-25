@@ -63,5 +63,5 @@ cleanup() {
 }
 trap cleanup INT TERM
 
-# 啟動 Next.js standalone 伺服器
-node server.js
+# 啟動應用（包含 migration 和 seed）
+npm run start:migrate:prod
