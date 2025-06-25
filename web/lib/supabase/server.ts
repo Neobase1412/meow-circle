@@ -6,7 +6,7 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!, // 使用與前端相同 URL 確保 cookie 一致
+    'http://localhost:8000', // 使用容器內 localhost proxy (透過 socat 轉到 kong:8000)
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {

@@ -53,9 +53,9 @@ export async function middleware(request: NextRequest) {
   });
 
   // Create Supabase client for middleware using new cookie methods
-  // 使用與前端相同的 URL 確保 cookie domain 一致
+  // middleware 在容器內，使用 localhost proxy (透過 socat 轉到 kong:8000)
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    'http://localhost:8000',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
