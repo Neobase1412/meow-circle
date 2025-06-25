@@ -15,7 +15,7 @@ services:
     image: partnerai/meow-circle:1.0.9
     restart: always
     ports:
-      - "80:3000"
+      - "3000:3000"
     environment:
       # PostgreSQL Database - 在容器中使用服務名稱代替 localhost
       DATABASE_URL: postgresql://postgres:BkgP8eYx4fLz2n7D9vTs5uQmRcK3aHwJ@db:5432/postgres?schema=public
