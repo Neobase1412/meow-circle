@@ -35,7 +35,7 @@ else
   echo "❌ External Supabase unreachable, will rely on internal proxy"
 fi
 
-# 不再需要本地代理，直接使用環境變數中的外部 URL
+# 所有組件現在都使用外部 URL 以保持 cookie 一致性
 echo "Using external Supabase URL for all components: $NEXT_PUBLIC_SUPABASE_URL"
 
 # 等待 Kong 服務就緒 (可選)

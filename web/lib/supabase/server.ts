@@ -6,14 +6,10 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
-    process.env.SUPABASE_URL!, // 使用內部 URL 但指定 cookie domain
+    process.env.NEXT_PUBLIC_SUPABASE_URL!, // 使用外部 URL 以保持 cookie 一致性
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookieOptions: {
-        domain: '35.229.234.32', // 明確指定 cookie domain 為外部 IP
-        path: '/',
-        sameSite: 'lax',
-      },
+      // 移除 cookieOptions.domain - IP 地址不適用於 cookie domain 設置
       cookies: {
         getAll() {
           return cookieStore.getAll();

@@ -9,10 +9,26 @@ version: '3.8'
 
 services:
 
+  # --- [Nginx 代理服務] ---
+  nginx-proxy:
+    container_name: supabase-nginx-proxy
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./nginx-proxy.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - kong
+    networks:
+      default:
+        aliases:
+          - 35.229.234.32  # 讓容器內部能通過 IP 訪問
+
   # --- [Web 服務直接對外] ---
   web:
     container_name: meow-circle-web
-    image: partnerai/meow-circle:1.0.19
+    image: partnerai/meow-circle:1.0.20
     restart: always
     ports:
       - "3000:3000"
@@ -78,8 +94,7 @@ services:
     container_name: supabase-kong
     image: kong:2.8.1
     restart: unless-stopped
-    ports:
-      - "8000:8000"
+    # 移除外部端口暴露，現在由 nginx-proxy 代理
     volumes:
       # https://github.com/supabase/supabase/issues/12661
       - ./volumes/api/kong.yml:/home/kong/temp.yml:ro,z
