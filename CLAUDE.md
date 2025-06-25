@@ -126,12 +126,12 @@ The application uses a comprehensive Prisma schema with these main entity groups
 - Must use internal networking: middleware → localhost:8000 → socat proxy → kong:8000
 - Frontend (browser) **must** use external IP to reach services from outside
 
-**Current Solution (v1.0.15):**
-- **Frontend (Browser)**: `35.229.234.32:8000` (required for external access)
-- **Middleware**: hardcoded `localhost:8000` (via socat proxy to kong:8000)
-- **Server Actions**: hardcoded `localhost:8000` (via socat proxy to kong:8000)
-- **Critical**: Frontend must use external IP, backend must use internal proxy
-- **Cookie Strategy**: Runtime env override ensures consistent cookie domain
+**Current Solution (v1.0.17) - cookieOptions.domain Strategy:**
+- **Frontend (Browser)**: `35.229.234.32:8000` (NEXT_PUBLIC_SUPABASE_URL for external access)
+- **Middleware**: `kong:8000` (internal) + `cookieOptions.domain: '35.229.234.32'`
+- **Server Actions**: `kong:8000` (internal) + `cookieOptions.domain: '35.229.234.32'` 
+- **Key Insight**: Use internal URLs for API calls but specify external domain for cookie consistency
+- **No Proxy Needed**: Eliminates socat complexity, uses official Supabase SSR approach
 
 ### Deployment Configuration & Constraints
 
@@ -144,21 +144,22 @@ The application uses a comprehensive Prisma schema with these main entity groups
 **Build Process Constraints:**
 - **Fixed Build Command**: `docker buildx build --no-cache --platform linux/amd64 --push -t partnerai/meow-circle:X.X.X .`
 - **No Build Args**: Cannot modify build command to add `--build-arg` parameters  
-- **Version Increment Only**: Only version number changes (currently 1.0.15)
+- **Version Increment Only**: Only version number changes (currently 1.0.17)
 - **Pre-built Images**: Uses pre-built images from Docker Hub, not local builds
-- **Historical Issue**: Attempted 10+ different approaches with localhost vs external IP configurations
+- **Historical Issue**: Attempted 15+ approaches cycling between 3-4 URL values before finding cookieOptions solution
 
 **Container Networking:**
 - **External Access**: Browser → `35.229.234.32:3000` (web), `35.229.234.32:8000` (Supabase)
 - **Internal Network**: web container → kong:8000, db:5432 (container names)
-- **Localhost Proxy**: socat redirects `localhost:8000` → `kong:8000` within web container
+- **No Proxy Needed**: Direct container networking with cookieOptions for domain consistency
 
-### Environment Variables (Production)
-- **Frontend (Client-side)**: `NEXT_PUBLIC_SUPABASE_URL=http://35.229.234.32:8000` (build-time injected)
-- **Middleware**: hardcoded `http://localhost:8000` (container-internal proxy)
-- **Server Actions**: hardcoded `http://localhost:8000` (container-internal proxy)  
+### Environment Variables & Configuration (Production v1.0.17)
+- **Frontend (Client-side)**: `NEXT_PUBLIC_SUPABASE_URL=http://35.229.234.32:8000`
+- **Middleware**: `SUPABASE_URL=http://kong:8000` + `cookieOptions.domain='35.229.234.32'`
+- **Server Actions**: `SUPABASE_URL=http://kong:8000` + `cookieOptions.domain='35.229.234.32'`
 - **Auth Service**: `API_EXTERNAL_URL=http://35.229.234.32:8000` (docker-compose setting)
 - **Database**: `DATABASE_URL=postgresql://postgres:...@db:5432/postgres`
+- **Key Pattern**: Internal API calls, external cookie domain specification
 
 ### Docker Architecture
 - **Multi-stage Build**: packages → builder → production
