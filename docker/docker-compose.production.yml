@@ -12,7 +12,7 @@ services:
   # --- [Web 服務直接對外] ---
   web:
     container_name: meow-circle-web
-    image: partnerai/meow-circle:1.0.11
+    image: partnerai/meow-circle:1.0.12
     restart: always
     ports:
       - "3000:3000"
