@@ -19,7 +19,7 @@ import type { PostForCommunityFeed, TagForCommunitySidebar } from "@/lib/communi
 
 export default async function Home({ params }: { params: Promise<{ locale: Locale }> }) { // Simplified params type
   const { locale } = await params;
-  const t = dictionary[locale];
+  const t = dictionary[locale] || dictionary['zh-TW'];
 
   // Fetch real data
   const {

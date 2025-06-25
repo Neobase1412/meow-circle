@@ -61,7 +61,7 @@ services:
       OPENAI_API_KEY: 
 
       SUPABASE_URL: http://kong:8000
-      SUPABASE_PUBLIC_URL: http://localhost:8000
+      SUPABASE_PUBLIC_URL: http://35.229.234.32:8000
       SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzQ2NzIwMDAwLCJleHAiOjE5MDQ0ODY0MDB9.y-EksR5ovQHe-DbciTu5vsdCsVqFyyPttJuBwqnBalo
       SUPABASE_SERVICE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3NDY3MjAwMDAsImV4cCI6MTkwNDQ4NjQwMH0.ItPfWnEYsEiL63_G5DEOzusYEBPVp5VX59dgAHhnoIY
       AUTH_JWT_SECRET: Ja9zFpQm2sX7vBdN4eKgH6LtR8yW3cUxZkY5nP
@@ -127,12 +127,12 @@ services:
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
-      API_EXTERNAL_URL: http://localhost:8000
+      API_EXTERNAL_URL: http://35.229.234.32:8000
 
       GOTRUE_DB_DRIVER: postgres
       GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:BkgP8eYx4fLz2n7D9vTs5uQmRcK3aHwJ@db:5432/postgres
 
-      GOTRUE_SITE_URL: http://localhost:3000
+      GOTRUE_SITE_URL: http://35.229.234.32:3000
       GOTRUE_URI_ALLOW_LIST: https://yourapp.com,https://app.yourapp.com
       GOTRUE_DISABLE_SIGNUP: "false"
 

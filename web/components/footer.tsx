@@ -3,7 +3,7 @@ import { Facebook, Instagram, Youtube, Mail } from "lucide-react"
 import { type Locale, dictionary } from "@/i18n-config"
 
 export default function Footer({ locale }: { locale: Locale }) {
-  const t = dictionary[locale]
+  const t = dictionary[locale] || dictionary['zh-TW']
 
   return (
     <footer className="bg-secondary/30 py-12">
