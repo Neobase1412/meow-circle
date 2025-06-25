@@ -35,17 +35,8 @@ else
   echo "❌ External Supabase unreachable, will rely on internal proxy"
 fi
 
-# 設置本地代理 - 將 localhost:8000 重定向到 kong:8000
-echo "Setting up localhost:8000 -> kong:8000 proxy..."
-# 安裝 socat 如果不存在
-if ! command -v socat >/dev/null 2>&1; then
-    echo "Installing socat..."
-    apk add --no-cache socat > /dev/null 2>&1
-fi
-# 啟動代理在背景運行
-socat TCP-LISTEN:8000,bind=127.0.0.1,reuseaddr,fork TCP:kong:8000 &
-PROXY_PID=$!
-echo "Proxy started (PID: $PROXY_PID)"
+# 不再需要本地代理，直接使用環境變數中的外部 URL
+echo "Using external Supabase URL for all components: $NEXT_PUBLIC_SUPABASE_URL"
 
 # 等待 Kong 服務就緒 (可選)
 if [ "$SKIP_HEALTH_CHECK" != "true" ]; then

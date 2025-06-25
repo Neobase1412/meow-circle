@@ -126,11 +126,12 @@ The application uses a comprehensive Prisma schema with these main entity groups
 - Must use internal networking: middleware → localhost:8000 → socat proxy → kong:8000
 - Frontend (browser) **must** use external IP to reach services from outside
 
-**Latest Attempt (v1.0.14):**
-- Frontend: `35.229.234.32:8000` (Dockerfile build-time injection)
-- Middleware: hardcoded `localhost:8000` (via socat proxy)
-- Server: hardcoded `localhost:8000` (via socat proxy)
-- Goal: All use `sb-localhost-auth-token` cookie domain
+**Current Solution (v1.0.15):**
+- **Frontend (Browser)**: `35.229.234.32:8000` (required for external access)
+- **Middleware**: hardcoded `localhost:8000` (via socat proxy to kong:8000)
+- **Server Actions**: hardcoded `localhost:8000` (via socat proxy to kong:8000)
+- **Critical**: Frontend must use external IP, backend must use internal proxy
+- **Cookie Strategy**: Runtime env override ensures consistent cookie domain
 
 ### Deployment Configuration & Constraints
 
@@ -142,9 +143,10 @@ The application uses a comprehensive Prisma schema with these main entity groups
 
 **Build Process Constraints:**
 - **Fixed Build Command**: `docker buildx build --no-cache --platform linux/amd64 --push -t partnerai/meow-circle:X.X.X .`
-- **No Build Args**: Cannot modify build command to add `--build-arg` parameters
-- **Version Increment Only**: Only version number changes (currently 1.0.14)
+- **No Build Args**: Cannot modify build command to add `--build-arg` parameters  
+- **Version Increment Only**: Only version number changes (currently 1.0.15)
 - **Pre-built Images**: Uses pre-built images from Docker Hub, not local builds
+- **Historical Issue**: Attempted 10+ different approaches with localhost vs external IP configurations
 
 **Container Networking:**
 - **External Access**: Browser → `35.229.234.32:3000` (web), `35.229.234.32:8000` (Supabase)
