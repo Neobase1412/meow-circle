@@ -85,7 +85,9 @@ export async function middleware(request: NextRequest) {
   );
 
   // Refresh session by loading user data from cookie/header
-  await supabase.auth.getUser();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  console.log('🔍 Middleware - Auth User:', user ? { id: user.id, email: user.email } : null);
+  console.log('🔍 Middleware - Auth Error:', error);
 
   // (Optional) Add authentication-based route protection here...
 
