@@ -53,11 +53,16 @@ export async function middleware(request: NextRequest) {
   });
 
   // Create Supabase client for middleware using new cookie methods
-  // middleware 使用外部 URL 以讀取正確的 cookie domain
+  // middleware 使用內部 URL 但指定 cookie domain 為外部 IP
   const supabase = createServerClient(
-    process.env.SUPABASE_EXTERNAL_URL || process.env.SUPABASE_URL!,
+    process.env.SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: {
+        domain: '35.229.234.32', // 明確指定 cookie domain 為外部 IP
+        path: '/',
+        sameSite: 'lax',
+      },
       cookies: {
         getAll() {
           return request.cookies.getAll();

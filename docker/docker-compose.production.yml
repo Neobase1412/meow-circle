@@ -22,8 +22,6 @@ services:
       # Supabase Configuration - 伺服器端使用容器網路，客戶端使用外部IP
       SUPABASE_URL: http://kong:8000
       NEXT_PUBLIC_SUPABASE_URL: http://35.229.234.32:8000
-      # 讓後端 Supabase client 知道要使用外部 URL 的 cookie
-      SUPABASE_EXTERNAL_URL: http://35.229.234.32:8000
       SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzQ2NzIwMDAwLCJleHAiOjE5MDQ0ODY0MDB9.y-EksR5ovQHe-DbciTu5vsdCsVqFyyPttJuBwqnBalo
       NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzQ2NzIwMDAwLCJleHAiOjE5MDQ0ODY0MDB9.y-EksR5ovQHe-DbciTu5vsdCsVqFyyPttJuBwqnBalo
       SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3NDY3MjAwMDAsImV4cCI6MTkwNDQ4NjQwMH0.ItPfWnEYsEiL63_G5DEOzusYEBPVp5VX59dgAHhnoIY
