@@ -22,10 +22,9 @@ export async function GET(request: Request) {
             // **Important:** Check if profile exists after OAuth login and create if needed
             // This is a good place to trigger profile check/creation for SOCIAL logins
             // (You might redirect to a specific server component that handles this check)
-             console.log("Auth callback successful, redirecting...");
             return NextResponse.redirect(`${origin}/${locale}`); // Redirect to localized home page
         } else {
-             console.error("Auth callback error during code exchange:", error);
+            console.error("Auth callback error during code exchange:", error);
         }
     } catch (e) {
         console.error("Auth callback unexpected error:", e);
@@ -34,6 +33,5 @@ export async function GET(request: Request) {
   }
 
   // If code is missing or exchange fails, redirect to an error page or login
-   console.warn("Auth callback failed or code missing, redirecting to login.");
   return NextResponse.redirect(`${origin}/${locale}/login?message=auth_error`);
 }

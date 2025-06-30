@@ -109,29 +109,33 @@ The application uses a comprehensive Prisma schema with these main entity groups
 
 ## Important Configuration Notes
 
-### Critical Authentication Issue (3+ Days Debugging)
+### Critical Authentication Issue (Resolved in v1.0.22)
 
-**Problem Description:**
-- User can successfully login (API returns 200, creates JWT token)
-- But frontend still shows "not logged in" state  
+**Problem History:**
+- User could successfully login (API returns 200, creates JWT token)
+- But frontend still showed "not logged in" state  
 - Session not syncing between browser and server components
+- Spent 3+ days debugging various approaches
 
-**Root Cause - Cookie Domain Mismatch:**
-- Frontend (browser) calls `http://35.229.234.32:8000` → creates `sb-35-auth-token` cookie
-- Middleware/Server try to read different cookie → find no valid session
-- Results in login success but immediate logout appearance
+**Root Causes Identified:**
+1. **Network Issue**: Container cannot reach external IP `35.229.234.32:8000` (timeout errors)
+2. **Cookie Naming Issue**: Supabase SSR auto-generates cookie names based on URL hostname
+   - Frontend uses `http://35.229.234.32:8000` → creates `sb-35-auth-token`
+   - Server uses `http://kong:8000` → looks for `sb-ko-auth-token`
+   - Result: Server cannot find the cookie created by frontend
 
-**Current Architecture Constraints:**
-- Container **cannot** reach external IP `35.229.234.32:8000` (confirmed timeout errors)
-- Must use internal networking: middleware → localhost:8000 → socat proxy → kong:8000
-- Frontend (browser) **must** use external IP to reach services from outside
-
-**Current Solution (v1.0.17) - cookieOptions.domain Strategy:**
-- **Frontend (Browser)**: `35.229.234.32:8000` (NEXT_PUBLIC_SUPABASE_URL for external access)
-- **Middleware**: `kong:8000` (internal) + `cookieOptions.domain: '35.229.234.32'`
-- **Server Actions**: `kong:8000` (internal) + `cookieOptions.domain: '35.229.234.32'` 
-- **Key Insight**: Use internal URLs for API calls but specify external domain for cookie consistency
-- **No Proxy Needed**: Eliminates socat complexity, uses official Supabase SSR approach
+**Final Solution (v1.0.22) - Fixed Cookie Name Strategy:**
+- Use a fixed cookie name `meow-circle-auth` across all environments
+- Configuration:
+  ```javascript
+  // In client.ts, server.ts, and middleware.ts
+  cookieOptions: {
+    name: 'meow-circle-auth', // Fixed cookie name
+  }
+  ```
+- **Frontend (Browser)**: `http://35.229.234.32:8000` (NEXT_PUBLIC_SUPABASE_URL)
+- **Middleware & Server**: `http://kong:8000` (SUPABASE_URL for internal networking)
+- **Benefits**: No more cookie naming conflicts regardless of URL changes
 
 ### Deployment Configuration & Constraints
 
@@ -144,22 +148,23 @@ The application uses a comprehensive Prisma schema with these main entity groups
 **Build Process Constraints:**
 - **Fixed Build Command**: `docker buildx build --no-cache --platform linux/amd64 --push -t partnerai/meow-circle:X.X.X .`
 - **No Build Args**: Cannot modify build command to add `--build-arg` parameters  
-- **Version Increment Only**: Only version number changes (currently 1.0.17)
+- **Version Increment Only**: Only version number changes (currently 1.0.22)
 - **Pre-built Images**: Uses pre-built images from Docker Hub, not local builds
 - **Historical Issue**: Attempted 15+ approaches cycling between 3-4 URL values before finding cookieOptions solution
 
 **Container Networking:**
 - **External Access**: Browser → `35.229.234.32:3000` (web), `35.229.234.32:8000` (Supabase)
 - **Internal Network**: web container → kong:8000, db:5432 (container names)
-- **No Proxy Needed**: Direct container networking with cookieOptions for domain consistency
+- **Fixed Cookie Name**: Uses `meow-circle-auth` to avoid URL-based naming conflicts
 
-### Environment Variables & Configuration (Production v1.0.17)
+### Environment Variables & Configuration (Production v1.0.22)
 - **Frontend (Client-side)**: `NEXT_PUBLIC_SUPABASE_URL=http://35.229.234.32:8000`
-- **Middleware**: `SUPABASE_URL=http://kong:8000` + `cookieOptions.domain='35.229.234.32'`
-- **Server Actions**: `SUPABASE_URL=http://kong:8000` + `cookieOptions.domain='35.229.234.32'`
+- **Middleware**: `SUPABASE_URL=http://kong:8000`
+- **Server Actions**: `SUPABASE_URL=http://kong:8000`
 - **Auth Service**: `API_EXTERNAL_URL=http://35.229.234.32:8000` (docker-compose setting)
 - **Database**: `DATABASE_URL=postgresql://postgres:...@db:5432/postgres`
-- **Key Pattern**: Internal API calls, external cookie domain specification
+- **Cookie Configuration**: Fixed cookie name `meow-circle-auth` across all environments
+- **Key Pattern**: Internal API calls for server-side, external URL for client-side
 
 ### Docker Architecture
 - **Multi-stage Build**: packages → builder → production
@@ -208,9 +213,16 @@ docker compose up -d
 
 ### Troubleshooting Authentication
 If login API succeeds but web shows logged out:
+- **Clear all browser cookies** and try logging in again
+- Check if using the fixed cookie name: `meow-circle-auth`
+- Verify environment variables:
+  - Client uses `NEXT_PUBLIC_SUPABASE_URL` (external IP)
+  - Server uses `SUPABASE_URL` (internal kong:8000)
 - Check container logs: `docker logs meow-circle-web`
-- Verify proxy is running: Should see "Proxy started (PID: X)" in logs
-- Ensure Supabase URLs are consistent across client/server components
+- Common issues:
+  - Old cookies from different URL configurations
+  - Missing cookieOptions configuration
+  - Network connectivity between containers
 
 ## Testing and Quality
 

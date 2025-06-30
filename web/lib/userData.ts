@@ -36,12 +36,7 @@ export async function getUserData(): Promise<{
   const supabase = await createClient();
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
-  // Debug logging
-  console.log('🔍 getUserData - Auth Error:', authError);
-  console.log('🔍 getUserData - Auth User:', authUser ? { id: authUser.id, email: authUser.email } : null);
-
   if (authError || !authUser) {
-    console.log('❌ getUserData - No auth user found, returning null');
     return { authUser: null, profile: null };
   }
 
@@ -67,8 +62,8 @@ export async function getUserData(): Promise<{
         },
       },
     });
+    
     // Ensure profile is returned as null if not found, matching the defined type
-    console.log('✅ getUserData - Profile found:', profile ? { id: profile.id, username: profile.username } : null);
     return { authUser, profile: profile ?? null };
   } catch (prismaError) {
     console.error("❌ Error fetching user profile from Prisma:", prismaError);

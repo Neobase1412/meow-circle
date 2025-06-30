@@ -6,10 +6,12 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!, // 使用外部 URL 以保持 cookie 一致性
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.SUPABASE_URL!, // 使用內部 URL (kong:8000) 避免容器網路問題
+    process.env.SUPABASE_ANON_KEY!,
     {
-      // 移除 cookieOptions.domain - IP 地址不適用於 cookie domain 設置
+      cookieOptions: {
+        name: 'meow-circle-auth', // 固定的 cookie 名稱，避免前綴問題
+      },
       cookies: {
         getAll() {
           return cookieStore.getAll();
